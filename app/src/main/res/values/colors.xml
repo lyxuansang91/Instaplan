@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="button">#BA3470</color>
+    <color name="Edittext">#E0E0E0</color>
+    <color name="Nickname">#58585B</color>
+    <color name="post">#BBBDC0</color>
+    <color name="deleted_background">#ff9a12</color>
+</resources>

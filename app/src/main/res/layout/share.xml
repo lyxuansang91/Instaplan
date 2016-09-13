@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:background="#ffffff"
+    android:clickable="true"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="45.5dp">
+
+        <Button
+
+            android:background="@drawable/back_arrow"
+            android:layout_centerVertical="true"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:id="@+id/btn_shareBack" />
+        <View
+            android:layout_below="@+id/txt_shareto"
+            android:layout_width="match_parent"
+            android:background="@color/tw__composer_black"
+            android:layout_height="0.5dp"
+            android:layout_alignParentBottom="true" />
+        <TextView
+            android:id="@+id/txt_shareto"
+            android:gravity="center"
+            android:text="Share to"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_alignTop="@+id/btn_shareBack"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignBottom="@+id/btn_shareBack" />
+
+
+    </RelativeLayout>
+
+
+<LinearLayout
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:padding="20dp"
+    android:layout_height="290dp">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+        <Button
+            android:id="@+id/btn_shareInsta"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/share_insta"/>
+        <android.support.v4.widget.Space
+            android:layout_width="10dp"
+            android:layout_height="match_parent" />
+        <Button
+            android:id="@+id/btn_ShareFacebook"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/share_facebook"/>
+    </LinearLayout>
+
+    <android.support.v4.widget.Space
+        android:layout_width="match_parent"
+        android:layout_height="10dp" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+        <Button
+            android:id="@+id/btn_shareWhatsapp"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/share_whatsapp"/>
+        <android.support.v4.widget.Space
+            android:layout_width="10dp"
+            android:layout_height="match_parent" />
+
+        <Button
+            android:id="@+id/btn_ShareTwitter"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/share_twitter"/>
+    </LinearLayout>
+
+
+</LinearLayout>
+</LinearLayout>
