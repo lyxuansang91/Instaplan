@@ -23,6 +23,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -51,10 +53,10 @@ import com.google.android.cameraview.CameraView;
 import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Calendar;
 
 
 public class CameraActivity extends AppCompatActivity implements
@@ -325,14 +327,12 @@ public class CameraActivity extends AppCompatActivity implements
                     .show();
             mCameraView.setVisibility(View.GONE);
             imgPhoto.setVisibility(View.VISIBLE);
+
             getBackgroundHandler().post(new Runnable() {
                 @Override
                 public void run() {
                     // This demo app saves the taken picture to a constant file.
                     // $ adb pull /sdcard/Android/data/com.google.android.cameraview.demo/files/Pictures/picture.jpg
-                    Calendar c = Calendar.getInstance();
-                    long seconds = System.currentTimeMillis();
-
                     String root = Environment.getExternalStorageDirectory().toString();
                     String path = root + "/instaplan/" + System.currentTimeMillis() + ".jpg";
                     currentPath = path;
@@ -481,11 +481,26 @@ public class CameraActivity extends AppCompatActivity implements
             int width = Integer.valueOf(str[1]);
             int height = Integer.valueOf(str[2]);
             Bitmap bm = decodeSampledBitmapFromUri(str[0], width, height);
+
+            try {
+                ExifInterface exif=new ExifInterface(str[0]);
+                Log.d("EXIF value", exif.getAttribute(ExifInterface.TAG_ORIENTATION));
+                if(exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("6")){
+                    bm= rotate(bm, 90);
+                } else if(exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("8")){
+                    bm= rotate(bm, 270);
+                } else if(exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("3")){
+                    bm= rotate(bm, 180);
+                } else if(exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("0")){
+                    bm= rotate(bm, 90);
+                }
+            } catch (FileNotFoundException e) {
+                Log.d("Info", "File not found: " + e.getMessage());
+            } catch (IOException e) {
+                Log.d("TAG", "Error accessing file: " + e.getMessage());
+            }
+
             return bm;
-//            BitmapFactory.Options options = new BitmapFactory.Options();
-//            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-//            Bitmap bitmap = BitmapFactory.decodeFile(params[0], options);
-//            return bitmap;
         }
 
         @Override
@@ -501,6 +516,15 @@ public class CameraActivity extends AppCompatActivity implements
         @Override
         protected void onProgressUpdate(Void... values) {
         }
+
+        public Bitmap rotate(Bitmap bitmap, int degree) {
+            int w = bitmap.getWidth();
+            int h = bitmap.getHeight();
+            Matrix mtx = new Matrix();
+            mtx.setRotate(degree);
+            return Bitmap.createBitmap(bitmap, 0, 0, w, h, mtx, true);
+        }
+
     }
 
 }
