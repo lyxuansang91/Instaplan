@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:background="#ffffff"
     android:clickable="true"
-    android:layout_height="match_parent">
+    android:orientation="vertical">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -12,87 +13,95 @@
 
         <Button
 
-            android:background="@drawable/back_arrow"
-            android:layout_centerVertical="true"
+            android:id="@+id/btn_shareBack"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:id="@+id/btn_shareBack" />
-        <View
-            android:layout_below="@+id/txt_shareto"
-            android:layout_width="match_parent"
-            android:background="@color/pink"
-            android:layout_height="0.5dp"
-            android:layout_alignParentBottom="true" />
+            android:layout_centerVertical="true"
+            android:background="@drawable/back_arrow" />
+
         <TextView
             android:id="@+id/txt_shareto"
-            android:gravity="center"
-            android:text="Share to"
             android:layout_width="match_parent"
             android:layout_height="45dp"
-            android:textColor="@color/pink"
-            android:layout_alignTop="@+id/btn_shareBack"
+            android:layout_alignBottom="@+id/btn_shareBack"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:layout_alignBottom="@+id/btn_shareBack" />
+            android:layout_alignTop="@+id/btn_shareBack"
+            android:gravity="center"
+            android:text="Share to"
+            android:textColor="@color/pink"
+            android:textStyle="bold" />
 
 
     </RelativeLayout>
 
-
-<LinearLayout
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:padding="20dp"
-    android:layout_height="290dp">
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/txt_shareto"
+        android:background="@color/pink" />
 
     <LinearLayout
-        android:orientation="horizontal"
-        android:layout_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="0dp">
-        <Button
-            android:id="@+id/btn_shareInsta"
+        android:layout_height="290dp"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:background="@drawable/share_insta"/>
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_shareInsta"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/share_insta" />
+
+            <android.support.v4.widget.Space
+                android:layout_width="10dp"
+                android:layout_height="match_parent" />
+
+            <Button
+                android:id="@+id/btn_ShareFacebook"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/share_facebook" />
+        </LinearLayout>
+
         <android.support.v4.widget.Space
-            android:layout_width="10dp"
-            android:layout_height="match_parent" />
-        <Button
-            android:id="@+id/btn_ShareFacebook"
+            android:layout_width="match_parent"
+            android:layout_height="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:background="@drawable/share_facebook"/>
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_shareWhatsapp"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/share_whatsapp" />
+
+            <android.support.v4.widget.Space
+                android:layout_width="10dp"
+                android:layout_height="match_parent" />
+
+            <Button
+                android:id="@+id/btn_ShareTwitter"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/share_twitter" />
+        </LinearLayout>
+
+
     </LinearLayout>
-
-    <android.support.v4.widget.Space
-        android:layout_width="match_parent"
-        android:layout_height="10dp" />
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_weight="1"
-        android:layout_width="match_parent"
-        android:layout_height="0dp">
-        <Button
-            android:id="@+id/btn_shareWhatsapp"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:background="@drawable/share_whatsapp"/>
-        <android.support.v4.widget.Space
-            android:layout_width="10dp"
-            android:layout_height="match_parent" />
-
-        <Button
-            android:id="@+id/btn_ShareTwitter"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:background="@drawable/share_twitter"/>
-    </LinearLayout>
-
-
-</LinearLayout>
 </LinearLayout>

@@ -55,6 +55,7 @@ import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareButton;
 import com.facebook.share.widget.ShareDialog;
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 import com.twitter.sdk.android.core.identity.TwitterLoginButton;
 import com.yalantis.ucrop.UCrop;
@@ -107,7 +108,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 
     CallbackManager callbackManager;
 
-    ArrayList<String> f = new ArrayList<String>();// list of file paths
+    ArrayList<String> fileArrayImage = new ArrayList<String>();// list of file paths
     File[] listFile;
 
     private static final String CLIENT_ID = "6b2cb3e2c129486a95d4e70661a4942d";
@@ -316,8 +317,8 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     private void queceDowloadImage(final List<String> key, final List<String> value, final Response.Listener<Boolean> listener) {
         if (key.size() > 0) {
             Boolean isNewImage = true;
-            for (int j = 0; j < f.size(); j++) {
-                if (f.get(j).contains(key.get(0)) || checkImageIsInBlacklist(key.get(0))) {
+            for (int j = 0; j < fileArrayImage.size(); j++) {
+                if (fileArrayImage.get(j).contains(key.get(0)) || checkImageIsInBlacklist(key.get(0))) {
                     isNewImage = false;
                 }
             }
@@ -426,7 +427,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     }
 
     public void getFromSdcard() {
-        f.clear();
+        fileArrayImage.clear();
         String root = Environment.getExternalStorageDirectory().toString();
         File file = new File(root + "/instaplan");
         file.mkdirs();
@@ -436,7 +437,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             for (int i = listFile.length - 1; i >= 0; i--)
 
             {
-                f.add(listFile[i].getAbsolutePath());
+                fileArrayImage.add(listFile[i].getAbsolutePath());
 
             }
         }
@@ -542,8 +543,8 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                         File file = new File(listFile[listFile.length - 1 - selectedPosition].getAbsolutePath());
                         boolean deleted = file.delete();
                         if (deleted) {
-                            addToBlackListImage(f.get(listFile.length - 1 - selectedPosition));
-                            f.remove(listFile.length - 1 - selectedPosition);
+                            addToBlackListImage(fileArrayImage.get(listFile.length - 1 - selectedPosition));
+                            fileArrayImage.remove(listFile.length - 1 - selectedPosition);
                             getFromSdcard();
                             imageAdapter.notifyDataSetChanged();
                             gv_images.invalidateViews();
@@ -593,7 +594,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 
         UCrop uCrop = UCrop.of(uri, uri);
 
-        uCrop.start(Login.this);
+        uCrop.start(Login.this, UCrop.REQUEST_CROP);
     }
 
     @Override
@@ -729,7 +730,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 //        });
 
         if (ShareDialog.canShow(SharePhotoContent.class)) {
-//            Bitmap image = BitmapFactory.decodeFile(f.get(listFile.length - 1 - selectedPosition));
+//            Bitmap image = BitmapFactory.decodeFile(fileArrayImage.get(listFile.length - 1 - selectedPosition));
             Uri uri = Uri.parse(new File("file://" + listFile[listFile.length - 1 - selectedPosition].getPath()).toString());
             SharePhoto photo = new SharePhoto.Builder()
                     .setImageUrl(uri)
@@ -815,16 +816,18 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 
     }
 
+    private boolean isCrop = false;
 
     public class ImageAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
+
 
         public ImageAdapter() {
             mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
         public int getCount() {
-            return f.size() + 1;
+            return fileArrayImage.size() + 1;
         }
 
         public Object getItem(int position) {
@@ -858,17 +861,21 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             } else {
                 holder.imagePlus.setVisibility(View.GONE);
                 holder.imageview.setVisibility(View.VISIBLE);
-//                Bitmap myBitmap = BitmapFactory.decodeFile(f.get(position - 1));
+//                Bitmap myBitmap = BitmapFactory.decodeFile(fileArrayImage.get(position - 1));
 //                holder.imageview.setImageBitmap(myBitmap);
 //                decodeImage mdecode = new decodeImage(holder.imageview);
-//                mdecode.execute(f.get(position - 1));
-                Picasso.with(Login.this).load(new File(f.get(position - 1))).resize(200, 200).placeholder(R.drawable.thumb).into(holder.imageview);
+//                mdecode.execute(fileArrayImage.get(position - 1));
+                if (isCrop) {
+                    Picasso.with(Login.this).load(new File(fileArrayImage.get(position - 1))).resize(200, 200).placeholder(R.drawable.thumb).memoryPolicy(MemoryPolicy.NO_CACHE).into(holder.imageview);
+                } else {
+                    Picasso.with(Login.this).load(new File(fileArrayImage.get(position - 1))).resize(200, 200).placeholder(R.drawable.thumb).memoryPolicy(MemoryPolicy.NO_CACHE).into(holder.imageview);
+                }
             }
             return convertView;
         }
     }
 
-    class ViewHolder {
+    static class ViewHolder {
         ImageView imageview;
         ImageView imagePlus;
     }
@@ -925,8 +932,12 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         super.onActivityResult(requestCode, resultCode, data);
         Log.e("Login", "xxx-onActivityResult-resultCode=" + resultCode);
         if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+            isCrop = true;
             getFromSdcard();
+            imageAdapter = new ImageAdapter();
+            gv_images.setAdapter(imageAdapter);
             imageAdapter.notifyDataSetChanged();
+
         } else {
             if (requestCode == 67 && resultCode == 1) {
                 if (data.getBooleanExtra("isCrop", false)) {
@@ -1037,6 +1048,16 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                     showToast("Please reload app and accept for external storage permission !");
                 }
                 break;
+            case Utility.REQUEST_CAMERA_PERMISSION:
+//                if (permissions.length != 1 || grantResults.length != 1) {
+//                    throw new RuntimeException("Error on requesting camera permission.");
+//                }
+//                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+//                    Toast.makeText(this, R.string.camera_permission_not_granted,
+//                            Toast.LENGTH_SHORT).show();
+//                }
+                break;
+
         }
     }
 

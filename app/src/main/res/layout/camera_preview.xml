@@ -23,6 +23,7 @@
         android:layout_height="wrap_content"
         android:text="Done"
         android:textAllCaps="false"
+        android:textColor="@color/pink"
         android:id="@+id/btn_done"
         android:background="@android:color/transparent"
         android:layout_alignTop="@+id/btn_crop"

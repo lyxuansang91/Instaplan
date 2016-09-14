@@ -64,6 +64,7 @@
                 android:textAllCaps="false"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:textStyle="bold"
                 android:text="Sign in"
                 android:layout_marginTop="15dp" />
 

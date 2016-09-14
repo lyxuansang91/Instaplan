@@ -179,7 +179,7 @@ public class ImageSelectAdapter extends BaseAdapter {
         }
     }
 
-    class ViewHolder {
+    static class ViewHolder {
         ImageView imageview;
         ImageView btnSelect;
     }
