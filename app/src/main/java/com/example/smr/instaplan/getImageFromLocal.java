@@ -2,9 +2,12 @@ package com.example.smr.instaplan;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -21,6 +24,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 
 /**
@@ -209,18 +213,21 @@ public class getImageFromLocal extends Activity {
 
             myImageAdapter = new ImageSelectAdapter(this);
             gv.setAdapter(myImageAdapter);
-            String ExternalStorageDirectoryPath = Environment
-                    .getExternalStorageDirectory()
-                    .getAbsolutePath();
-            String targetPath = ExternalStorageDirectoryPath + "/DCIM/Camera/";
-            File targetDirector = new File(targetPath);
-
-            final File[] files = targetDirector.listFiles();
-            for (File file : files) {
-                ImageSelectItem item = new ImageSelectItem(file.getAbsolutePath(), false);
-                myImageAdapter.add(item);
+//            String ExternalStorageDirectoryPath = Environment
+//                    .getExternalStorageDirectory()
+//                    .getAbsolutePath();
+//            String targetPath = ExternalStorageDirectoryPath + "/DCIM/Camera/";
+//            File targetDirector = new File(targetPath);
+//
+//            final File[] files = targetDirector.listFiles();
+//            for (File file : files) {
+//                ImageSelectItem item = new ImageSelectItem(file.getAbsolutePath(), false);
+//                myImageAdapter.add(item);
+//            }
+            ArrayList<ImageSelectItem> imageSelectItems = getAllShownImagesPath(this);
+            for (int i = imageSelectItems.size() - 1; i >= 0; i--) {
+                myImageAdapter.add(imageSelectItems.get(i));
             }
-
             btn_back.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -343,5 +350,28 @@ public class getImageFromLocal extends Activity {
         return displaymetrics.widthPixels;
     }
 
+    private ArrayList<ImageSelectItem> getAllShownImagesPath(Activity activity) {
+        Uri uri;
+        Cursor cursor;
+        int column_index_data, column_index_folder_name;
+        ArrayList<ImageSelectItem> listOfAllImages = new ArrayList<ImageSelectItem>();
+        String absolutePathOfImage = null;
+        uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
+        String[] projection = {MediaStore.MediaColumns.DATA,
+                MediaStore.Images.Media.BUCKET_DISPLAY_NAME};
+
+        cursor = activity.getContentResolver().query(uri, projection, null,
+                null, null);
+
+        column_index_data = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+        column_index_folder_name = cursor
+                .getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME);
+        while (cursor.moveToNext()) {
+            absolutePathOfImage = cursor.getString(column_index_data);
+
+            listOfAllImages.add(new ImageSelectItem(absolutePathOfImage, false));
+        }
+        return listOfAllImages;
+    }
 }

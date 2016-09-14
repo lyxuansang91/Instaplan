@@ -20,7 +20,7 @@
         <View
             android:layout_below="@+id/txt_shareto"
             android:layout_width="match_parent"
-            android:background="@color/tw__composer_black"
+            android:background="@color/pink"
             android:layout_height="0dp"
             android:layout_alignParentBottom="true" />
         <TextView
@@ -29,6 +29,7 @@
             android:text="Photo"
             android:layout_width="match_parent"
             android:layout_height="30dp"
+            android:textColor="@color/pink"
             android:layout_alignTop="@+id/btn_previewImageBack"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
@@ -57,6 +58,7 @@
         android:layout_height="wrap_content"
         android:text="Done"
         android:textAllCaps="false"
+        android:textColor="@color/pink"
         android:id="@+id/btn_done"
         android:background="@android:color/transparent"
         android:layout_alignTop="@+id/btn_crop"

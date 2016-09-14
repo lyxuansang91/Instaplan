@@ -1,5 +1,6 @@
 package com.example.smr.instaplan;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -7,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 
 /**
  * Created by SMR on 9/10/2016.
@@ -15,6 +17,7 @@ public class deletedFragment extends Fragment {
     RemoveDeletedFragment removeDeletedFragment;
 
     public deletedFragment(){}
+    @SuppressLint("ValidFragment")
     public deletedFragment(RemoveDeletedFragment removeDeletedFragment) {
         this.removeDeletedFragment = removeDeletedFragment;
     }
@@ -30,6 +33,13 @@ public class deletedFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         Button btn_close = (Button)view.findViewById(R.id.btn_close);
         btn_close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                removeDeletedFragment.remove();
+            }
+        });
+        RelativeLayout backgroud = (RelativeLayout) view.findViewById(R.id.backgroud);
+        backgroud.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 removeDeletedFragment.remove();

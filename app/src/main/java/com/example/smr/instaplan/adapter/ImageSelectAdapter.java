@@ -13,7 +13,9 @@ import android.widget.ImageView;
 
 import com.example.smr.instaplan.ImageSelectItem;
 import com.example.smr.instaplan.R;
+import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -103,8 +105,9 @@ public class ImageSelectAdapter extends BaseAdapter {
             } else {
                 holder.btnSelect.setVisibility(View.GONE);
             }
-            decodeImage mdecode = new decodeImage(holder.imageview);
-            mdecode.execute(mItems.get(position - 1).getPath());
+            Picasso.with(mContext).load(new File(mItems.get(position - 1).getPath())).resize(200, 200).placeholder(R.drawable.thumb).into(holder.imageview);
+//            decodeImage mdecode = new decodeImage(holder.imageview);
+//            mdecode.execute(mItems.get(position - 1).getPath());
         }
 
         return convertView;

@@ -55,6 +55,7 @@ import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareButton;
 import com.facebook.share.widget.ShareDialog;
+import com.squareup.picasso.Picasso;
 import com.twitter.sdk.android.core.identity.TwitterLoginButton;
 import com.yalantis.ucrop.UCrop;
 
@@ -728,9 +729,10 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 //        });
 
         if (ShareDialog.canShow(SharePhotoContent.class)) {
-            Bitmap image = BitmapFactory.decodeFile(f.get(listFile.length - 1 - selectedPosition));
+//            Bitmap image = BitmapFactory.decodeFile(f.get(listFile.length - 1 - selectedPosition));
+            Uri uri = Uri.parse(new File("file://" + listFile[listFile.length - 1 - selectedPosition].getPath()).toString());
             SharePhoto photo = new SharePhoto.Builder()
-                    .setBitmap(image)
+                    .setImageUrl(uri)
                     .build();
             SharePhotoContent content = new SharePhotoContent.Builder()
                     .addPhoto(photo)
@@ -858,8 +860,9 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                 holder.imageview.setVisibility(View.VISIBLE);
 //                Bitmap myBitmap = BitmapFactory.decodeFile(f.get(position - 1));
 //                holder.imageview.setImageBitmap(myBitmap);
-                decodeImage mdecode = new decodeImage(holder.imageview);
-                mdecode.execute(f.get(position - 1));
+//                decodeImage mdecode = new decodeImage(holder.imageview);
+//                mdecode.execute(f.get(position - 1));
+                Picasso.with(Login.this).load(new File(f.get(position - 1))).resize(200, 200).placeholder(R.drawable.thumb).into(holder.imageview);
             }
             return convertView;
         }

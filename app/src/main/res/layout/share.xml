@@ -20,7 +20,7 @@
         <View
             android:layout_below="@+id/txt_shareto"
             android:layout_width="match_parent"
-            android:background="@color/tw__composer_black"
+            android:background="@color/pink"
             android:layout_height="0.5dp"
             android:layout_alignParentBottom="true" />
         <TextView
@@ -29,6 +29,7 @@
             android:text="Share to"
             android:layout_width="match_parent"
             android:layout_height="45dp"
+            android:textColor="@color/pink"
             android:layout_alignTop="@+id/btn_shareBack"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"

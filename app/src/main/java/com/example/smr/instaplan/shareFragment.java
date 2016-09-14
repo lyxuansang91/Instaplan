@@ -1,5 +1,6 @@
 package com.example.smr.instaplan;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -16,6 +17,7 @@ public class shareFragment extends Fragment {
     RemoveShareDelegate removeShareFragment;
 
     public shareFragment(){}
+    @SuppressLint("ValidFragment")
     public shareFragment(RemoveShareDelegate removeShareFragment) {
         this.removeShareFragment = removeShareFragment;
     }

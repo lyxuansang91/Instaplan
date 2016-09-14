@@ -38,6 +38,7 @@
             android:layout_alignTop="@+id/btn_crop"
             android:background="@android:color/transparent"
             android:text="Done"
+            android:textColor="@color/pink"
             android:textAllCaps="false" />
 
         <Button
