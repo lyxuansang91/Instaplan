@@ -5,7 +5,7 @@
     android:background="#ffffff"
     android:orientation="vertical">
 
-    <com.example.smr.instaplan.SquareImageView
+    <com.example.smr.instaplan.widget.SquareImageView
         android:id="@+id/img_android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

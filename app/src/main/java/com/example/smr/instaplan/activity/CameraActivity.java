@@ -24,7 +24,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -49,11 +48,10 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.smr.instaplan.R;
+import com.example.smr.instaplan.ucrop.UCrop;
 import com.google.android.cameraview.CameraView;
-import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -101,31 +99,31 @@ public class CameraActivity extends AppCompatActivity implements
         public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.take_picture:
-                    if (imgPhoto.getVisibility() == View.VISIBLE){
+                    if (imgPhoto.getVisibility() == View.VISIBLE) {
                         mCameraView.setVisibility(View.VISIBLE);
                         imgPhoto.setVisibility(View.GONE);
                         break;
                     }
-
-                    if (ContextCompat.checkSelfPermission(CameraActivity.this,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                            == PackageManager.PERMISSION_GRANTED) {
-                        if (mCameraView != null) {
-                            mCameraView.takePicture();
-                        }
-                    } else if (ActivityCompat.shouldShowRequestPermissionRationale(
-                            CameraActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                        ConfirmationDialogFragment
-                                .newInstance(R.string.storage_permission_confirmation,
-                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                        REQUEST_STORAGE_PERMISSION,
-                                        R.string.storage_permission_not_granted)
-                                .show(getSupportFragmentManager(), FRAGMENT_DIALOG);
-                    } else {
-                        ActivityCompat.requestPermissions(CameraActivity.this,
-                                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                REQUEST_STORAGE_PERMISSION);
-                    }
+                    mCameraView.takePicture();
+//                    if (ContextCompat.checkSelfPermission(CameraActivity.this,
+//                            Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//                            == PackageManager.PERMISSION_GRANTED) {
+//                        if (mCameraView != null) {
+//                            mCameraView.takePicture();
+//                        }
+//                    } else if (ActivityCompat.shouldShowRequestPermissionRationale(
+//                            CameraActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+//                        ConfirmationDialogFragment
+//                                .newInstance(R.string.storage_permission_confirmation,
+//                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+//                                        REQUEST_STORAGE_PERMISSION,
+//                                        R.string.storage_permission_not_granted)
+//                                .show(getSupportFragmentManager(), FRAGMENT_DIALOG);
+//                    } else {
+//                        ActivityCompat.requestPermissions(CameraActivity.this,
+//                                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+//                                REQUEST_STORAGE_PERMISSION);
+//                    }
                     break;
             }
         }
@@ -323,8 +321,8 @@ public class CameraActivity extends AppCompatActivity implements
         @Override
         public void onPictureTaken(CameraView cameraView, final byte[] data) {
             Log.d(TAG, "onPictureTaken " + data.length);
-            Toast.makeText(cameraView.getContext(), R.string.picture_taken, Toast.LENGTH_SHORT)
-                    .show();
+//            Toast.makeText(cameraView.getContext(), R.string.picture_taken, Toast.LENGTH_SHORT)
+//                    .show();
             mCameraView.setVisibility(View.GONE);
             imgPhoto.setVisibility(View.VISIBLE);
 
@@ -350,6 +348,14 @@ public class CameraActivity extends AppCompatActivity implements
                         String str = file.getAbsolutePath() + "@@@" + getWithOfScreen() + "@@@" + getHeightOfScreen();
                         decodeImage mdecode = new decodeImage(imgPhoto);
                         mdecode.execute(str);
+                        Log.d(TAG, "image shot: " + str);
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                Picasso.with(CameraActivity.this).load(new File(str)).into(imgPhoto);
+//                            }
+//                        });
+
                     } catch (IOException e) {
                         Log.w(TAG, "Cannot write to " + file, e);
                     } finally {
@@ -482,23 +488,23 @@ public class CameraActivity extends AppCompatActivity implements
             int height = Integer.valueOf(str[2]);
             Bitmap bm = decodeSampledBitmapFromUri(str[0], width, height);
 
-            try {
-                ExifInterface exif=new ExifInterface(str[0]);
-                Log.d("EXIF value", exif.getAttribute(ExifInterface.TAG_ORIENTATION));
-                if(exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("6")){
-                    bm= rotate(bm, 90);
-                } else if(exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("8")){
-                    bm= rotate(bm, 270);
-                } else if(exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("3")){
-                    bm= rotate(bm, 180);
-                } else if(exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("0")){
-                    bm= rotate(bm, 90);
-                }
-            } catch (FileNotFoundException e) {
-                Log.d("Info", "File not found: " + e.getMessage());
-            } catch (IOException e) {
-                Log.d("TAG", "Error accessing file: " + e.getMessage());
-            }
+//            try {
+//                ExifInterface exif = new ExifInterface(str[0]);
+//                Log.d("EXIF value", exif.getAttribute(ExifInterface.TAG_ORIENTATION));
+//                if (exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("6")) {
+//                    bm = rotate(bm, 90);
+//                } else if (exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("8")) {
+//                    bm = rotate(bm, 270);
+//                } else if (exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("3")) {
+//                    bm = rotate(bm, 180);
+//                } else if (exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("0")) {
+//                    bm = rotate(bm, 90);
+//                }
+//            } catch (FileNotFoundException e) {
+//                Log.d("Info", "File not found: " + e.getMessage());
+//            } catch (IOException e) {
+//                Log.d("TAG", "Error accessing file: " + e.getMessage());
+//            }
 
             return bm;
         }

@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 
-import com.example.smr.instaplan.ImageSelectItem;
+import com.example.smr.instaplan.model.ImageSelectItem;
 import com.example.smr.instaplan.R;
 import com.squareup.picasso.Picasso;
 
