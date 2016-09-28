@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Instaplan</string>
+    <string name="app_name">Feedplanner</string>
     <string name="facebook_app_id">1794388387507937</string>
 
     <string name="select_count">Selected(%s)</string>
