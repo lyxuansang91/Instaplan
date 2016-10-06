@@ -44,23 +44,24 @@
 
             <Button
                 android:id="@+id/btn_logout"
-                android:layout_width="25dp"
-                android:layout_height="25dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentTop="true"
-                android:layout_marginRight="5dp"
-                android:layout_marginTop="5dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="10dp"
                 android:background="@drawable/btn_logout" />
 
             <TextView
                 android:id="@+id/txt_nickname"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="17dp"
                 android:layout_marginStart="17dp"
+                android:singleLine="true"
                 android:layout_marginTop="20dp"
-                android:layout_toEndOf="@+id/image_avatar"
+                android:layout_toLeftOf="@+id/btn_logout"
                 android:layout_toRightOf="@+id/image_avatar"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="@color/Nickname"

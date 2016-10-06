@@ -105,7 +105,7 @@ public class ImageSelectAdapter extends BaseAdapter {
             } else {
                 holder.btnSelect.setVisibility(View.GONE);
             }
-            Picasso.with(mContext).load(new File(mItems.get(position - 1).getPath())).resize(200, 200).placeholder(R.drawable.thumb).into(holder.imageview);
+            Picasso.with(mContext).load(new File(mItems.get(position - 1).getPath())).resize(200, 0).placeholder(R.drawable.thumb).into(holder.imageview);
 //            decodeImage mdecode = new decodeImage(holder.imageview);
 //            mdecode.execute(mItems.get(position - 1).getPath());
         }

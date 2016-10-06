@@ -873,9 +873,9 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 //                decodeImage mdecode = new decodeImage(holder.imageview);
 //                mdecode.execute(fileArrayImage.get(position - 1));
                 if (isCrop) {
-                    Picasso.with(Login.this).load(new File(fileArrayImage.get(position - 1))).resize(200, 200).placeholder(R.drawable.thumb).memoryPolicy(MemoryPolicy.NO_CACHE).into(holder.imageview);
+                    Picasso.with(Login.this).load(new File(fileArrayImage.get(position - 1))).resize(200, 0).placeholder(R.drawable.thumb).memoryPolicy(MemoryPolicy.NO_CACHE).into(holder.imageview);
                 } else {
-                    Picasso.with(Login.this).load(new File(fileArrayImage.get(position - 1))).resize(200, 200).placeholder(R.drawable.thumb).memoryPolicy(MemoryPolicy.NO_CACHE).into(holder.imageview);
+                    Picasso.with(Login.this).load(new File(fileArrayImage.get(position - 1))).resize(200, 0).placeholder(R.drawable.thumb).memoryPolicy(MemoryPolicy.NO_CACHE).into(holder.imageview);
                 }
             }
             return convertView;
