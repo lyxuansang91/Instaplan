@@ -118,9 +118,12 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     ArrayList<String> fileArrayImage = new ArrayList<String>();// list of file paths
     File[] listFile;
 
-    private static final String CLIENT_ID = "6b2cb3e2c129486a95d4e70661a4942d";
-    private static final String CLIENT_SECRET = "58cf6ea88f494079a5785dd373c8746a";
-    private static final String REDIRECT_URI = "https://www.instagram.com/thanhsmr/";
+    //    private static final String CLIENT_ID = "6b2cb3e2c129486a95d4e70661a4942d";
+//    private static final String CLIENT_SECRET = "58cf6ea88f494079a5785dd373c8746a";
+//    private static final String REDIRECT_URI = "https://www.instagram.com/thanhsmr/";
+    private static final String CLIENT_ID = "44cdda39501e43799baef40906424eb2";
+    private static final String CLIENT_SECRET = "b15428252491471baae9bde85d7442f9";
+    private static final String REDIRECT_URI = "http://feedplanner.me";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

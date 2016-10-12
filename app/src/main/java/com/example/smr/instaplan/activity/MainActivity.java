@@ -26,10 +26,12 @@ public class MainActivity extends Activity {
     private InstagramSession mInstagramSession;
     private Instagram mInstagram;
 
-    private static final String CLIENT_ID = "6b2cb3e2c129486a95d4e70661a4942d";
-    private static final String CLIENT_SECRET = "58cf6ea88f494079a5785dd373c8746a";
-    private static final String REDIRECT_URI = "https://www.instagram.com/thanhsmr/";
-
+    //    private static final String CLIENT_ID = "6b2cb3e2c129486a95d4e70661a4942d";
+//    private static final String CLIENT_SECRET = "58cf6ea88f494079a5785dd373c8746a";
+//    private static final String REDIRECT_URI = "https://www.instagram.com/thanhsmr/";
+    private static final String CLIENT_ID = "44cdda39501e43799baef40906424eb2";
+    private static final String CLIENT_SECRET = "b15428252491471baae9bde85d7442f9";
+    private static final String REDIRECT_URI = "http://feedplanner.me";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,9 +39,9 @@ public class MainActivity extends Activity {
         TwitterAuthConfig authConfig = new TwitterAuthConfig(TWITTER_KEY, TWITTER_SECRET);
         Fabric.with(this, new Twitter(authConfig));
 
-        mInstagram  		= new Instagram(this, CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+        mInstagram = new Instagram(this, CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
-        mInstagramSession	= mInstagram.getSession();
+        mInstagramSession = mInstagram.getSession();
 
         if (mInstagramSession.isActive()) {
             Intent it = new Intent(MainActivity.this, Login.class);
@@ -57,7 +59,6 @@ public class MainActivity extends Activity {
                 }
             });
         }
-
 
 
     }
