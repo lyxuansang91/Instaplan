@@ -664,7 +664,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             startActivity(share);
         } catch (android.content.ActivityNotFoundException ex) {
 //            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.whatsapp")));
-            showToast("Please install whatsapp from ch Play");
+            showToast("Please install whatsapp from Google Play");
         }
     }
 
@@ -714,7 +714,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             share.putExtra(Intent.EXTRA_STREAM, uri);
             startActivity(share);
         } else {
-            showToast("Please install instagram app on CH play!");
+            showToast("Please install instagram app on Google play!");
         }
     }
 
@@ -799,7 +799,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             tweetIntent.putExtra(Intent.EXTRA_STREAM, uri);
             startActivity(tweetIntent);
         } else {
-            showToast("Please install Twitter app from CH play");
+            showToast("Please install Twitter app from Google play");
         }
 
     }
