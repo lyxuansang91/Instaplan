@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="#ffffff"
     android:clickable="true"
-    tools:context="com.example.smr.instaplan.activity.MainActivity">
+    tools:context="me.feedplanner.activity.MainActivity">
 
     <Button
 
@@ -43,7 +43,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
-    <com.example.smr.instaplan.widget.ResizableImageViewByWidth
+    <me.feedplanner.widget.ResizableImageViewByWidth
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:src="@mipmap/txtsharebg"
