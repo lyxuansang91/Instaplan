@@ -205,7 +205,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 //                if (position > 0) {
                 rowViewInclick = view;
-                selectedPosition = position - 1;
+                selectedPosition = position;
                 RelativeLayout rootView = (RelativeLayout) findViewById(R.id.rootLayout);
 
                 popoverView = new PopoverView(Login.this, R.layout.popover_showed_view);
@@ -247,8 +247,10 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent it = new Intent(Login.this, getImageFromLocal.class);
-                startActivityForResult(it, 67);
+//                Intent it = new Intent(Login.this, getImageFromLocal.class);
+//                startActivityForResult(it, 67);
+                Intent intent = new Intent(Login.this, ListAlbumActivity.class);
+                startActivityForResult(intent, 67);
             }
         });
     }
@@ -942,6 +944,11 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         mrequestQueue.add(stringRequest);
     }
 
+    private int CODE_IMAGE_LOCAL = 67;
+    private int RESULT_SELECTED = 1;
+    private int RESULT_CAMERA_DONE = 11;
+    private int RESULT_CAMERA_CROP = 21;
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -954,33 +961,33 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             imageAdapter.notifyDataSetChanged();
 
         } else {
-            if (requestCode == 67 && resultCode == 1) {
-                if (data.getBooleanExtra("isCrop", false)) {
-                    getFromSdcard();
-                    imageAdapter.notifyDataSetChanged();
-                } else {
-                    if (data.getBooleanExtra("isSaved", false)) {
-                        getFromSdcard();
-                        imageAdapter.notifyDataSetChanged();
-                    } else {
-                        String path = data.getStringExtra("path");
-                        if (path.equals(MyAplication.SELECTED)) {
-                            if (MyAplication.imageSelected != null && MyAplication.imageSelected.size() > 0) {
-                                for (ImageSelectItem item : MyAplication.imageSelected) {
-                                    Bitmap bm = decodeSampledBitmapFromUri(item.getPath(), 500, 500);
-                                    saveToInternalStorage(bm, System.currentTimeMillis() + "");
-                                }
-                                getFromSdcard();
-                                imageAdapter.notifyDataSetChanged();
+            if (requestCode == CODE_IMAGE_LOCAL) {
+                if (resultCode == RESULT_SELECTED) {
+                    String path = data.getStringExtra("path");
+                    if (path.equals(MyAplication.SELECTED)) {
+                        if (MyAplication.imageSelected != null && MyAplication.imageSelected.size() > 0) {
+                            for (ImageSelectItem item : MyAplication.imageSelected) {
+                                Bitmap bm = decodeSampledBitmapFromUri(item.getPath(), 500, 500);
+                                saveToInternalStorage(bm, System.currentTimeMillis() + "");
                             }
-                        } else {
-                            Bitmap bm = decodeSampledBitmapFromUri(data.getStringExtra("path"), 500, 500);
-                            saveToInternalStorage(bm, System.currentTimeMillis() + "");
                             getFromSdcard();
                             imageAdapter.notifyDataSetChanged();
                         }
+                    } else {
+                        Bitmap bm = decodeSampledBitmapFromUri(data.getStringExtra("path"), 500, 500);
+                        saveToInternalStorage(bm, System.currentTimeMillis() + "");
+                        getFromSdcard();
+                        imageAdapter.notifyDataSetChanged();
                     }
+                } else if (resultCode == RESULT_CAMERA_DONE) {
+                    getFromSdcard();
+                    imageAdapter.notifyDataSetChanged();
+
+                } else if (resultCode == RESULT_CAMERA_CROP) {
+                    getFromSdcard();
+                    imageAdapter.notifyDataSetChanged();
                 }
+
 
             }
         }

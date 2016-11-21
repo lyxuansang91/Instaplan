@@ -29,25 +29,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="me.feedplanner.activity.Login"></activity>
-        <activity android:name="me.feedplanner.activity.getImageFromLocal"></activity>
-        <activity android:name="me.feedplanner.activity.ImagePreview"></activity>
-        <activity android:name="me.feedplanner.activity.customCameraView"></activity>
+        <activity android:name="me.feedplanner.activity.Login" />
+        <activity android:name="me.feedplanner.activity.getImageFromLocal" />
+        <activity android:name="me.feedplanner.activity.ImagePreview" />
+        <activity android:name="me.feedplanner.activity.customCameraView" />
         <activity
             android:name="me.feedplanner.activity.CameraActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-
         <activity
             android:name="com.facebook.FacebookActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:label="@string/app_name"
-            tools:replace="android:theme"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            tools:replace="android:theme" />
         <activity
             android:name="me.feedplanner.activity.UCropActivity"
             android:screenOrientation="portrait"
@@ -62,6 +60,7 @@
             android:authorities="com.facebook.app.FacebookContentProvider1794388387507937"
             android:exported="true" />
 
+        <activity android:name="me.feedplanner.activity.ListAlbumActivity"></activity>
     </application>
 
 </manifest>

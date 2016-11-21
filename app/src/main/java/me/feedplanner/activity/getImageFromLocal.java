@@ -23,8 +23,6 @@ import android.widget.GridView;
 import android.widget.TextView;
 
 import com.example.smr.feedplanner.R;
-import me.feedplanner.adapter.ImageSelectAdapter;
-import me.feedplanner.model.ImageSelectItem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -32,6 +30,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import me.feedplanner.adapter.ImageSelectAdapter;
+import me.feedplanner.model.ImageSelectItem;
 
 import static me.feedplanner.util.Utility.REQUEST_CAMERA_PERMISSION;
 
@@ -47,29 +48,26 @@ public class getImageFromLocal extends AppCompatActivity {
     String pathSelected;
     ImageSelectAdapter myImageAdapter;
     private static final String FRAGMENT_DIALOG = "dialog";
+    private String albumName;
+    private int CODE_CAMERA = 36;
+    private int CODE_CROP = 35;
+    private int RESULT_SELECTED = 1;
+    private int RESULT_CAMERA = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (savedInstanceState == null) {
             setContentView(R.layout.image_from_local);
+            Intent intent = getIntent();
+            albumName = intent.getStringExtra("albumName");
             btn_back = (Button) findViewById(R.id.btn_imageLocalBack);
             gv = (GridView) findViewById(R.id.local_gridview);
             btn_done_select = (TextView) findViewById(R.id.btn_done_select);
 
             myImageAdapter = new ImageSelectAdapter(this);
             gv.setAdapter(myImageAdapter);
-//            String ExternalStorageDirectoryPath = Environment
-//                    .getExternalStorageDirectory()
-//                    .getAbsolutePath();
-//            String targetPath = ExternalStorageDirectoryPath + "/DCIM/Camera/";
-//            File targetDirector = new File(targetPath);
-//
-//            final File[] files = targetDirector.listFiles();
-//            for (File file : files) {
-//                ImageSelectItem item = new ImageSelectItem(file.getAbsolutePath(), false);
-//                myImageAdapter.add(item);
-//            }
+
             ArrayList<ImageSelectItem> imageSelectItems = getAllShownImagesPath(this);
             for (int i = imageSelectItems.size() - 1; i >= 0; i--) {
                 myImageAdapter.add(imageSelectItems.get(i));
@@ -88,7 +86,7 @@ public class getImageFromLocal extends AppCompatActivity {
                     MyAplication.getInstance().imageSelected = myImageAdapter.getSelected();
                     Intent intent = new Intent();
                     intent.putExtra("path", MyAplication.SELECTED);
-                    setResult(1, intent);
+                    setResult(RESULT_SELECTED, intent);
                     finish();
 
                 }
@@ -124,7 +122,7 @@ public class getImageFromLocal extends AppCompatActivity {
                         if (ContextCompat.checkSelfPermission(getImageFromLocal.this, Manifest.permission.CAMERA)
                                 == PackageManager.PERMISSION_GRANTED) {
                             Intent intent = new Intent(getImageFromLocal.this, CameraActivity.class);
-                            startActivityForResult(intent, 36);
+                            startActivityForResult(intent, CODE_CAMERA);
                         } else if (ActivityCompat.shouldShowRequestPermissionRationale(getImageFromLocal.this,
                                 Manifest.permission.CAMERA)) {
                             CameraActivity.ConfirmationDialogFragment
@@ -156,35 +154,22 @@ public class getImageFromLocal extends AppCompatActivity {
                 if (permissions.length != 1 || grantResults.length != 1) {
                     throw new RuntimeException("Error on requesting camera permission.");
                 }
-//                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-//                    Toast.makeText(this, R.string.camera_permission_not_granted,
-//                            Toast.LENGTH_SHORT).show();
-//                }
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                         == PackageManager.PERMISSION_GRANTED) {
                     Intent intent = new Intent(getImageFromLocal.this, CameraActivity.class);
-                    startActivityForResult(intent, 36);
+                    startActivityForResult(intent, CODE_CAMERA);
                 }
-//                else if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-//                        Manifest.permission.CAMERA)) {
-//                    CameraActivity.ConfirmationDialogFragment
-//                            .newInstance(R.string.camera_permission_confirmation,
-//                                    new String[]{Manifest.permission.CAMERA},
-//                                    REQUEST_CAMERA_PERMISSION,
-//                                    R.string.camera_permission_not_granted)
-//                            .show(getSupportFragmentManager(), FRAGMENT_DIALOG);
-//                } else {
-//                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
-//                            REQUEST_CAMERA_PERMISSION);
-//                }
                 break;
         }
     }
 
+    private int RESULT_CAMERA_DONE = 11;
+    private int RESULT_CAMERA_CROP = 21;
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 35 && resultCode == 1) {
+        if (requestCode == CODE_CROP && resultCode == 1) {
             if (data.getBooleanExtra("isCrop", false)) {
                 Intent it = new Intent();
                 it.putExtra("isCrop", true);
@@ -217,7 +202,7 @@ public class getImageFromLocal extends AppCompatActivity {
                     Intent it = new Intent(getImageFromLocal.this, ImagePreview.class);
                     it.putExtra("path", path);
                     it.putExtra("camera", true);
-                    startActivityForResult(it, 36);
+                    startActivityForResult(it, CODE_CAMERA);
 
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
@@ -225,18 +210,31 @@ public class getImageFromLocal extends AppCompatActivity {
                     e.printStackTrace();
                 }
             } else {
-                if (requestCode == 36 && resultCode == 1) {
-                    if (data.getBooleanExtra("isCrop", false)) {
+                if (requestCode == CODE_CAMERA) {
+                    if (resultCode == RESULT_CAMERA_DONE) {
+                        Intent intent = new Intent();
+                        intent.putExtra("isSaved", true);
+                        setResult(RESULT_CAMERA_DONE, intent);
+                        finish();
+                    } else if (resultCode == RESULT_CAMERA_CROP) {
+                        Intent intent = new Intent();
+                        intent.putExtra("isCrop", true);
+                        setResult(RESULT_CAMERA_CROP, intent);
+                        finish();
+                    }
+                    /*boolean isCrop = data.getBooleanExtra("isCrop", false);
+                    boolean isSaved = data.getBooleanExtra("isSaved", false);
+                    if (isCrop) {
                         Intent it = new Intent();
                         it.putExtra("isCrop", true);
                         setResult(1, it);
                         finish();
-                    } else {
+                    } else if (isSaved) {
                         Intent intent = new Intent();
                         intent.putExtra("isSaved", true);
                         setResult(1, intent);
                         finish();
-                    }
+                    }*/
 
                 }
 
@@ -269,10 +267,14 @@ public class getImageFromLocal extends AppCompatActivity {
         column_index_folder_name = cursor
                 .getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME);
         while (cursor.moveToNext()) {
-            absolutePathOfImage = cursor.getString(column_index_data);
+            if (cursor.getString(column_index_folder_name).equals(albumName)) {
+                absolutePathOfImage = cursor.getString(column_index_data);
+                listOfAllImages.add(new ImageSelectItem(absolutePathOfImage, false));
+            }
 
-            listOfAllImages.add(new ImageSelectItem(absolutePathOfImage, false));
         }
         return listOfAllImages;
     }
+
+
 }

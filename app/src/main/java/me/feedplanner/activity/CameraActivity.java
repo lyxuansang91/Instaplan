@@ -48,13 +48,14 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.smr.feedplanner.R;
-import me.feedplanner.ucrop.UCrop;
 import com.google.android.cameraview.CameraView;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+
+import me.feedplanner.ucrop.UCrop;
 
 
 public class CameraActivity extends AppCompatActivity implements
@@ -93,6 +94,8 @@ public class CameraActivity extends AppCompatActivity implements
     private Handler mBackgroundHandler;
     Button btn_crop, btn_done;
     ImageView btn_back;
+    private int RESULT_CAMERA_DONE = 11;
+    private int RESULT_CAMERA_CROP = 21;
 
     private View.OnClickListener mOnClickListener = new View.OnClickListener() {
         @Override
@@ -169,7 +172,7 @@ public class CameraActivity extends AppCompatActivity implements
                     Intent it = new Intent();
                     it.putExtra("isSaved", true);
                     it.putExtra("isCrop", false);
-                    setResult(1, it);
+                    setResult(RESULT_CAMERA_DONE, it);
                     finish();
                 } else {
                     finish();
@@ -198,7 +201,7 @@ public class CameraActivity extends AppCompatActivity implements
         if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
             Intent it = new Intent();
             it.putExtra("isCrop", true);
-            setResult(1, it);
+            setResult(RESULT_CAMERA_CROP, it);
             finish();
         }
     }
@@ -332,23 +335,30 @@ public class CameraActivity extends AppCompatActivity implements
                     // This demo app saves the taken picture to a constant file.
                     // $ adb pull /sdcard/Android/data/com.google.android.cameraview.demo/files/Pictures/picture.jpg
                     String root = Environment.getExternalStorageDirectory().toString();
-                    String path = root + "/instaplan/" + System.currentTimeMillis() + ".jpg";
-                    currentPath = path;
-                    File file = new File(path);
+                    String path = root + "/instaplan";
+                    File folder = new File(path);
+                    boolean success = true;
+                    if (!folder.exists()) {
+                        success = folder.mkdir();
+                    }
+                    if (success) {
+                        path = root + "/instaplan/" + System.currentTimeMillis() + ".jpg";
+                        currentPath = path;
+                        File file = new File(path);
 
 //                    File file = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "picture_" + seconds + ".jpg");
-                    OutputStream os = null;
-                    try {
-                        os = new FileOutputStream(file);
-                        os.write(data);
-                        os.close();
+                        OutputStream os = null;
+                        try {
+                            os = new FileOutputStream(file);
+                            os.write(data);
+                            os.close();
 
-                        // bind image
+                            // bind image
 //                        currentPath = file.getAbsolutePath();
-                        String str = file.getAbsolutePath() + "@@@" + getWithOfScreen() + "@@@" + getHeightOfScreen();
-                        decodeImage mdecode = new decodeImage(imgPhoto);
-                        mdecode.execute(str);
-                        Log.d(TAG, "image shot: " + str);
+                            String str = file.getAbsolutePath() + "@@@" + getWithOfScreen() + "@@@" + getHeightOfScreen();
+                            decodeImage mdecode = new decodeImage(imgPhoto);
+                            mdecode.execute(str);
+                            Log.d(TAG, "image shot: " + str);
 //                        runOnUiThread(new Runnable() {
 //                            @Override
 //                            public void run() {
@@ -356,17 +366,19 @@ public class CameraActivity extends AppCompatActivity implements
 //                            }
 //                        });
 
-                    } catch (IOException e) {
-                        Log.w(TAG, "Cannot write to " + file, e);
-                    } finally {
-                        if (os != null) {
-                            try {
-                                os.close();
-                            } catch (IOException e) {
-                                // Ignore
+                        } catch (IOException e) {
+                            Log.w(TAG, "Cannot write to " + file, e);
+                        } finally {
+                            if (os != null) {
+                                try {
+                                    os.close();
+                                } catch (IOException e) {
+                                    // Ignore
+                                }
                             }
                         }
                     }
+
                 }
             });
         }
