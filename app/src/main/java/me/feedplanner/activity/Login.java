@@ -74,6 +74,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -102,10 +103,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     deletedFragment mDeletedFragment;
     preShareFragment mPreShareFramgnet;
     shareFragment mshareFragment;
-    TwitterLoginButton btn_loginTwitter;
     LoginButton btn_loginFacebook;
-    ShareButton btn_shareInFacebook;
-    getImageFromLocal mGetImageFromLocal;
     int selectedPosition;
     private ImageAdapter imageAdapter;
     private InstagramSession mInstagramSession;
@@ -113,16 +111,12 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     View rowViewInclick;
 
     RequestQueue mrequestQueue;
-    Boolean isGallery;
-
     CallbackManager callbackManager;
 
     ArrayList<String> fileArrayImage = new ArrayList<String>();// list of file paths
+    ArrayList<String> arrayImageInInstagram = new ArrayList<String>();// list of Instagram
     File[] listFile;
     private FloatingActionButton fab;
-    //    private static final String CLIENT_ID = "6b2cb3e2c129486a95d4e70661a4942d";
-//    private static final String CLIENT_SECRET = "58cf6ea88f494079a5785dd373c8746a";
-//    private static final String REDIRECT_URI = "https://www.instagram.com/thanhsmr/";
     private static final String CLIENT_ID = "44cdda39501e43799baef40906424eb2";
     private static final String CLIENT_SECRET = "b15428252491471baae9bde85d7442f9";
     private static final String REDIRECT_URI = "http://feedplanner.me";
@@ -142,8 +136,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                 if (Utility.checkPermission(Login.this)) {
                     mainAction();
                 }
-
-
             } else {
                 setContentView(R.layout.login);
                 btn_signin = (Button) findViewById(R.id.btn_signin);
@@ -164,13 +156,10 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                         } else {
                             mInstagram.authorize(mAuthListener);
                         }
-
-
                     }
                 });
             }
         }
-
     }
 
     private void mainAction() {
@@ -192,6 +181,11 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         getUserInfo();
         getFromSdcard();
 
+        if (Utility.getAddImage(getBaseContext())){
+            fab.setVisibility(View.GONE);
+        }else{
+            fab.setVisibility(View.VISIBLE);
+        }
 
         btn_logout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -203,52 +197,50 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         gv_images.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                if (position > 0) {
-                rowViewInclick = view;
-                selectedPosition = position;
-                RelativeLayout rootView = (RelativeLayout) findViewById(R.id.rootLayout);
+                if (!Utility.getAddImage(getBaseContext()) || position > 0) {
+                    rowViewInclick = view;
+                    selectedPosition = position;
+                    RelativeLayout rootView = (RelativeLayout) findViewById(R.id.rootLayout);
 
-                popoverView = new PopoverView(Login.this, R.layout.popover_showed_view);
-                DisplayMetrics displaymetrics = new DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-                int height = displaymetrics.heightPixels;
-                int width = displaymetrics.widthPixels;
-                Point p;
-                if (width <= 768) {
-                    p = new Point(300, 430);
+                    popoverView = new PopoverView(Login.this, R.layout.popover_showed_view);
+                    DisplayMetrics displaymetrics = new DisplayMetrics();
+                    getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+                    int height = displaymetrics.heightPixels;
+                    int width = displaymetrics.widthPixels;
+                    Point p;
+                    if (width <= 768) {
+                        p = new Point(300, 430);
 
-                } else {
-                    if (width > 768 && width <= 1080) {
-                        p = new Point(400, 590);
                     } else {
-                        p = new Point(500, 760);
+                        if (width > 768 && width <= 1080) {
+                            p = new Point(400, 590);
+                        } else {
+                            p = new Point(500, 760);
+                        }
                     }
-                }
-                popoverView.setContentSizeForViewInPopover(p);
-                popoverView.setDelegate(Login.this);
-                popoverView.showPopoverFromRectInViewGroup(rootView, PopoverView.getFrameForView(view), PopoverView.PopoverArrowDirectionAny, true);
+                    popoverView.setContentSizeForViewInPopover(p);
+                    popoverView.setDelegate(Login.this);
+                    popoverView.showPopoverFromRectInViewGroup(rootView, PopoverView.getFrameForView(view), PopoverView.PopoverArrowDirectionAny, true);
 
-                ImageView img = (ImageView) view.findViewById(R.id.foregroundImage);
+                    ImageView img = (ImageView) view.findViewById(R.id.foregroundImage);
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    img.setImageDrawable(Login.this.getDrawable(R.drawable.ticker));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        img.setImageDrawable(Login.this.getDrawable(R.drawable.ticker));
+                    } else {
+                        img.setImageDrawable(getResources().getDrawable(R.drawable.ticker));
+                    }
+
                 } else {
-                    img.setImageDrawable(getResources().getDrawable(R.drawable.ticker));
+                    Utility.setAddImage(getBaseContext() , false);
+                    Intent intent = new Intent(Login.this, ListAlbumActivity.class);
+                    startActivityForResult(intent, 67);
                 }
-
-//                } else {
-//                    Intent it = new Intent(Login.this, getImageFromLocal.class);
-//                    startActivityForResult(it, 67);
-//                }
-
             }
         });
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                Intent it = new Intent(Login.this, getImageFromLocal.class);
-//                startActivityForResult(it, 67);
                 Intent intent = new Intent(Login.this, ListAlbumActivity.class);
                 startActivityForResult(intent, 67);
             }
@@ -263,7 +255,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         @Override
         public void onSuccess(InstagramUser user) {
             finish();
-
             startActivity(new Intent(Login.this, Login.class));
         }
 
@@ -275,7 +266,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         @Override
         public void onCancel() {
             showToast("OK. Maybe later?");
-
         }
     };
 
@@ -294,7 +284,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         showProgresBar();
         final Map<String, String> photoList = new HashMap<>();
         String url = "https://api.instagram.com/v1/users/self/media/recent/?access_token=" + mInstagramSession.getAccessToken();
-//        RequestQueue requestQueue = Volley.newRequestQueue(this);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -330,14 +319,11 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> param = new HashMap<>();
                 param.put("COUNT", "10");
-//                param.put("MIN_ID","10");
-//                param.put("MAX_ID","10");
                 return param;
             }
         };
         mrequestQueue.add(stringRequest);
     }
-
 
     private void queceDowloadImage(final List<String> key, final List<String> value, final Response.Listener<Boolean> listener) {
         if (key.size() > 0) {
@@ -375,7 +361,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                         listener.onResponse(false);
                     }
                 });
-
                 mrequestQueue.add(ir);
             } else {
                 key.remove(0);
@@ -394,23 +379,22 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                 } else {
                     listener.onResponse(true);
                 }
-
             }
-
         } else {
             listener.onResponse(true);
         }
-
     }
 
     private void downloadAndSaveToLocal(final Map<String, String> urlList) {
 
         List<String> key = new ArrayList<>();
+        arrayImageInInstagram.clear();
         List<String> value = new ArrayList<>();
         for (final Map.Entry<String, String> entry : urlList.entrySet()) {
-            key.add(entry.getKey());
+            key.add(entry.getKey() + ".jpg");
             value.add(entry.getValue());
         }
+        arrayImageInInstagram.addAll(key);
         queceDowloadImage(key, value, new Response.Listener<Boolean>() {
             @Override
             public void onResponse(Boolean response) {
@@ -432,14 +416,10 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     }
 
     private String saveToInternalStorage(Bitmap bitmapImage, String name) {
-//        ContextWrapper cw = new ContextWrapper(getApplicationContext());
-//        // path to /data/data/yourapp/app_data/imageDir
-//        File directory = cw.getDir("instaplan", Context.MODE_PRIVATE);
-//        // Create imageDir
         String root = Environment.getExternalStorageDirectory().toString();
         File myDir = new File(root + "/instaplan");
         myDir.mkdirs();
-        File mypath = new File(myDir, name + ".jpg");
+        File mypath = new File(myDir, name);
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(mypath);
@@ -452,19 +432,34 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     }
 
     public void getFromSdcard() {
-        fileArrayImage.clear();
+        ArrayList<String> listOfInstagram = new ArrayList<String>();
+        ArrayList<String> listImageAdd = new ArrayList<String>();
         String root = Environment.getExternalStorageDirectory().toString();
         File file = new File(root + "/instaplan");
         file.mkdirs();
 
         if (file.isDirectory()) {
             listFile = file.listFiles();
+            Arrays.sort(listFile);
+            boolean check;
             for (int i = listFile.length - 1; i >= 0; i--)
-
             {
-                fileArrayImage.add(listFile[i].getAbsolutePath());
-
+                check = false;
+                for (int j=0 ; j<arrayImageInInstagram.size() ; j++){
+                    if (arrayImageInInstagram.get(j).equals(listFile[i].getName())){
+                        check = true;
+                        break;
+                    }
+                }
+                if(check){
+                    listOfInstagram.add(listFile[i].getAbsolutePath());
+                }else{
+                    listImageAdd.add(listFile[i].getAbsolutePath());
+                }
             }
+            fileArrayImage.clear();
+            fileArrayImage.addAll(listImageAdd);
+            fileArrayImage.addAll(listOfInstagram);
         }
     }
 
@@ -522,21 +517,21 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         }
     }
 
-
     private void gotoPreShareview() {
-        mPreShareFramgnet = new preShareFragment(Login.this);
+        /*mPreShareFramgnet = new preShareFragment(Login.this);
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
-        fragmentTransaction.replace(android.R.id.content, mPreShareFramgnet).commit();
+        fragmentTransaction.replace(android.R.id.content, mPreShareFramgnet).commit();*/
+        this.toShare();
     }
-
 
     private void logout() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(Login.this);
         builder.setMessage("Are you sure to logout !")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        Utility.setAddImage(getBaseContext() , true);
                         mInstagramSession.reset();
                         Intent it = new Intent(Login.this, MainActivity.class);
                         Login.this.finish();
@@ -545,10 +540,8 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-
                     }
                 });
-        // Create the AlertDialog object and return it
         builder.create();
         builder.show();
     }
@@ -556,8 +549,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     private void addImage() {
         Intent it = new Intent(Login.this, getImageFromLocal.class);
         startActivityForResult(it, 67);
-
-
     }
 
     private void deleteImage() {
@@ -665,7 +656,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             default:
                 break;
         }
-
     }
 
     private void shareWhatsapp() {
@@ -685,7 +675,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 
     private boolean verificaInstagram() {
         boolean installed = false;
-
         try {
             ApplicationInfo info = getPackageManager().getApplicationInfo("com.instagram.android", 0);
             installed = true;
@@ -697,7 +686,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 
     private boolean verificaTwitter() {
         boolean installed = false;
-
         try {
             ApplicationInfo info = getPackageManager().getApplicationInfo("com.twitter.android", 0);
             installed = true;
@@ -736,26 +724,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 
     private void shareFacebookPhoto() {
         ShareDialog shareDialog = new ShareDialog(this);
-
-//        shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
-//            @Override
-//            public void onSuccess(Sharer.Result result) {
-//
-//            }
-//
-//            @Override
-//            public void onCancel() {
-//                onResume();
-//            }
-//
-//            @Override
-//            public void onError(FacebookException error) {
-//
-//            }
-//        });
-
         if (ShareDialog.canShow(SharePhotoContent.class)) {
-//            Bitmap image = BitmapFactory.decodeFile(fileArrayImage.get(listFile.length - 1 - selectedPosition));
             Uri uri = Uri.parse(new File("file://" + listFile[listFile.length - 1 - selectedPosition].getPath()).toString());
             SharePhoto photo = new SharePhoto.Builder()
                     .setImageUrl(uri)
@@ -803,7 +772,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         }
     }
 
-
     private void shareTwitter() {
         if (verificaTwitter()) {
             Intent tweetIntent = new Intent(Intent.ACTION_SEND);
@@ -816,7 +784,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         } else {
             showToast("Please install Twitter app from Google play");
         }
-
     }
 
     @Override
@@ -838,21 +805,21 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
         fragmentTransaction.replace(android.R.id.content, mshareFragment).commit();
-
     }
 
     private boolean isCrop = false;
 
     public class ImageAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
-
-
         public ImageAdapter() {
             mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
         public int getCount() {
-            return fileArrayImage.size();
+            if (Utility.getAddImage(getBaseContext()))
+                return fileArrayImage.size() + 1;
+            else
+                return fileArrayImage.size();
         }
 
         public Object getItem(int position) {
@@ -867,27 +834,29 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             ViewHolder holder;
             if (convertView == null) {
                 holder = new ViewHolder();
-                convertView = mInflater.inflate(
-                        R.layout.image_row, null);
+                convertView = mInflater.inflate(R.layout.image_row, null);
                 holder.imageview = (ImageView) convertView.findViewById(R.id.img_android);
                 holder.imagePlus = (ImageView) convertView.findViewById(R.id.img_plus);
                 convertView.setTag(holder);
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
-//            if (position == 0) {
-//                holder.imagePlus.setVisibility(View.VISIBLE);
-//                holder.imageview.setVisibility(View.INVISIBLE);
-//
-//            } else {
-            holder.imagePlus.setVisibility(View.GONE);
-            holder.imageview.setVisibility(View.VISIBLE);
-            if (isCrop) {
-                Picasso.with(Login.this).load(new File(fileArrayImage.get(position))).resize(200, 0).placeholder(R.drawable.thumb).memoryPolicy(MemoryPolicy.NO_CACHE).into(holder.imageview);
+            if (position == 0 && Utility.getAddImage(getBaseContext())) {
+                holder.imagePlus.setVisibility(View.VISIBLE);
+                holder.imageview.setVisibility(View.INVISIBLE);
+
             } else {
-                Picasso.with(Login.this).load(new File(fileArrayImage.get(position))).resize(200, 0).placeholder(R.drawable.thumb).memoryPolicy(MemoryPolicy.NO_CACHE).into(holder.imageview);
+                holder.imagePlus.setVisibility(View.GONE);
+                holder.imageview.setVisibility(View.VISIBLE);
+                if (Utility.getAddImage(getBaseContext()))
+                    position = position - 1;
+                if (isCrop) {
+                    Picasso.with(Login.this).load(new File(fileArrayImage.get(position))).resize(200, 0).placeholder(R.drawable.thumb).memoryPolicy(MemoryPolicy.NO_CACHE).into(holder.imageview);
+                } else {
+                    Picasso.with(Login.this).load(new File(fileArrayImage.get(position))).resize(200, 0).placeholder(R.drawable.thumb).memoryPolicy(MemoryPolicy.NO_CACHE).into(holder.imageview);
+                }
             }
-//            }
+
             return convertView;
         }
     }
@@ -896,7 +865,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         ImageView imageview;
         ImageView imagePlus;
     }
-
 
     private void getUerProfile(String url) {
         ImageRequest ir = new ImageRequest(url, new Response.Listener<Bitmap>() {
@@ -911,7 +879,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                 getImages();
             }
         });
-
         mrequestQueue.add(ir);
     }
 
@@ -926,8 +893,8 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                         JSONObject jsonData = json.getJSONObject("data");
                         nickname.setText("@" + jsonData.getString("full_name"));
                         post.setText(jsonData.getJSONObject("counts").getString("media"));
-                        follower.setText(jsonData.getJSONObject("counts").getString("follows"));
-                        following.setText(jsonData.getJSONObject("counts").getString("followed_by"));
+                        follower.setText(jsonData.getJSONObject("counts").getString("followed_by"));
+                        following.setText(jsonData.getJSONObject("counts").getString("follows"));
                         getUerProfile(jsonData.getString("profile_picture"));
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -937,7 +904,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-//                showToast("error on load Profile");
                 getUserInfo();
             }
         });
@@ -952,14 +918,19 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.e("Login", "xxx-onActivityResult-resultCode=" + resultCode);
+        if (requestCode != RESULT_CANCELED){
+            if (Utility.getAddImage(getBaseContext())){
+                fab.setVisibility(View.GONE);
+            }else{
+                fab.setVisibility(View.VISIBLE);
+            }
+        }
         if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
             isCrop = true;
             getFromSdcard();
             imageAdapter = new ImageAdapter();
             gv_images.setAdapter(imageAdapter);
             imageAdapter.notifyDataSetChanged();
-
         } else {
             if (requestCode == CODE_IMAGE_LOCAL) {
                 if (resultCode == RESULT_SELECTED) {
@@ -991,40 +962,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 
             }
         }
-//        } else if (requestCode == 123 && resultCode == RESULT_OK) {
-//            Uri uri = data.getData();
-//            try {
-//                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-//                saveToInternalStorage(bitmap, System.currentTimeMillis() +"");
-//                getFromSdcard();
-//                imageAdapter.notifyDataSetChanged();
-//                gv_images.invalidateViews();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        } else if (requestCode == 124 && resultCode == RESULT_OK) {
-//            Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-//            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-//            thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
-//            File destination = new File(Environment.getExternalStorageDirectory(),
-//                    System.currentTimeMillis() + ".jpg");
-//            FileOutputStream fo;
-//            try {
-//                destination.createNewFile();
-//                fo = new FileOutputStream(destination);
-//                fo.write(bytes.toByteArray());
-//                fo.close();
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            saveToInternalStorage(thumbnail, System.currentTimeMillis() +"");
-//            getFromSdcard();
-//            imageAdapter.notifyDataSetChanged();
-//            gv_images.invalidateViews();
-//
-//        }
     }
 
     @Override
@@ -1057,7 +994,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 
             }
         }
-
     }
 
     @Override
@@ -1071,13 +1007,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                 }
                 break;
             case Utility.REQUEST_CAMERA_PERMISSION:
-//                if (permissions.length != 1 || grantResults.length != 1) {
-//                    throw new RuntimeException("Error on requesting camera permission.");
-//                }
-//                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-//                    Toast.makeText(this, R.string.camera_permission_not_granted,
-//                            Toast.LENGTH_SHORT).show();
-//                }
                 break;
 
         }

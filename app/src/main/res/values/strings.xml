@@ -2,7 +2,7 @@
     <string name="app_name">Feedplanner</string>
     <string name="facebook_app_id">1794388387507937</string>
 
-    <string name="select_count">Selected(%s)</string>
+    <string name="select_count">Next(%s)</string>
 
     <string name="camera_permission_confirmation">This app demonstrates the usage of CameraView. In order to do that, it needs permission to access camera.</string>
     <string name="camera_permission_not_granted">Camera app cannot do anything without camera permission.</string>

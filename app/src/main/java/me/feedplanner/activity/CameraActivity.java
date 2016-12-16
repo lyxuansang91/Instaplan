@@ -94,6 +94,7 @@ public class CameraActivity extends AppCompatActivity implements
     private Handler mBackgroundHandler;
     Button btn_crop, btn_done;
     ImageView btn_back;
+    private ImageView btn_Selfie;
     private int RESULT_CAMERA_DONE = 11;
     private int RESULT_CAMERA_CROP = 21;
 
@@ -108,25 +109,13 @@ public class CameraActivity extends AppCompatActivity implements
                         break;
                     }
                     mCameraView.takePicture();
-//                    if (ContextCompat.checkSelfPermission(CameraActivity.this,
-//                            Manifest.permission.WRITE_EXTERNAL_STORAGE)
-//                            == PackageManager.PERMISSION_GRANTED) {
-//                        if (mCameraView != null) {
-//                            mCameraView.takePicture();
-//                        }
-//                    } else if (ActivityCompat.shouldShowRequestPermissionRationale(
-//                            CameraActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-//                        ConfirmationDialogFragment
-//                                .newInstance(R.string.storage_permission_confirmation,
-//                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-//                                        REQUEST_STORAGE_PERMISSION,
-//                                        R.string.storage_permission_not_granted)
-//                                .show(getSupportFragmentManager(), FRAGMENT_DIALOG);
-//                    } else {
-//                        ActivityCompat.requestPermissions(CameraActivity.this,
-//                                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-//                                REQUEST_STORAGE_PERMISSION);
-//                    }
+                    break;
+                case R.id.btn_selfie:
+                    if (mCameraView.getFacing() == CameraView.FACING_FRONT){
+                        mCameraView.setFacing(CameraView.FACING_BACK);
+                    }else{
+                        mCameraView.setFacing(CameraView.FACING_FRONT);
+                    }
                     break;
             }
         }
@@ -141,6 +130,7 @@ public class CameraActivity extends AppCompatActivity implements
         btn_crop = (Button) findViewById(R.id.btn_crop);
         btn_done = (Button) findViewById(R.id.btn_done);
         btn_back = (ImageView) findViewById(R.id.btn_previewImageBack);
+        btn_Selfie = (ImageView) findViewById(R.id.btn_selfie);
 
         if (mCameraView != null) {
             mCameraView.addCallback(mCallback);
@@ -164,6 +154,7 @@ public class CameraActivity extends AppCompatActivity implements
             }
         });
 
+        btn_Selfie.setOnClickListener(mOnClickListener);
 
         btn_done.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -270,34 +261,6 @@ public class CameraActivity extends AppCompatActivity implements
                 break;
         }
     }
-
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getMenuInflater().inflate(R.menu.main, menu);
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        switch (item.getItemId()) {
-//            case R.id.switch_flash:
-//                if (mCameraView != null) {
-//                    mCurrentFlash = (mCurrentFlash + 1) % FLASH_OPTIONS.length;
-//                    item.setTitle(FLASH_TITLES[mCurrentFlash]);
-//                    item.setIcon(FLASH_ICONS[mCurrentFlash]);
-//                    mCameraView.setFlash(FLASH_OPTIONS[mCurrentFlash]);
-//                }
-//                break;
-//            case R.id.switch_camera:
-//                if (mCameraView != null) {
-//                    int facing = mCameraView.getFacing();
-//                    mCameraView.setFacing(facing == CameraView.FACING_FRONT ?
-//                            CameraView.FACING_BACK : CameraView.FACING_FRONT);
-//                }
-//                break;
-//        }
-//        return false;
-//    }
 
     private Handler getBackgroundHandler() {
         if (mBackgroundHandler == null) {

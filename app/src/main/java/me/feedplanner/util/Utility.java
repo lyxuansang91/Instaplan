@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
@@ -52,5 +53,20 @@ public class Utility {
         } else {
             return true;
         }
+    }
+
+    private static final String INSTAGRAM_SHARE_PREFERENCES = "com.example.smr.instaplan";
+    private static final String ADD_IMAGE = "ADD_IMAGE";
+
+    public static void setAddImage(Context context , boolean isAdd){
+        SharedPreferences sharedPreferences = context.getSharedPreferences(INSTAGRAM_SHARE_PREFERENCES , Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(ADD_IMAGE , isAdd);
+        editor.commit();
+    }
+
+    public static boolean getAddImage(Context context){
+        SharedPreferences sharedPreferences = context.getSharedPreferences(INSTAGRAM_SHARE_PREFERENCES , Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(ADD_IMAGE , true);
     }
 }
