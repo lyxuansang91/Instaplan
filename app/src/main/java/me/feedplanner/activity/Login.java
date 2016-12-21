@@ -15,16 +15,21 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
 import android.text.InputType;
+import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -97,6 +102,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     Button btn_signin, btn_logout;
     EditText edt_username, edit_password;
     GridView gv_images;
+    SwipeRefreshLayout mSwipeRefreshLayout;
     TextView nickname, post, follower, following;
     ImageView img_avatar;
     PopoverView popoverView;
@@ -110,10 +116,21 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     private Instagram mInstagram;
     View rowViewInclick;
 
+    private static final int NUMBER_OF_PAGES = 18;
+//    private int numberPages ;
+//    private boolean isFull = false;
+//    private boolean isLoad;
+
+    @Override
+    public void onActivityReenter(int resultCode, Intent data) {
+        super.onActivityReenter(resultCode, data);
+    }
+
     RequestQueue mrequestQueue;
     CallbackManager callbackManager;
 
     ArrayList<String> fileArrayImage = new ArrayList<String>();// list of file paths
+    ArrayList<String> oldFileArrayImage = new ArrayList<String>();
     ArrayList<String> arrayImageInInstagram = new ArrayList<String>();// list of Instagram
     File[] listFile;
     private FloatingActionButton fab;
@@ -134,6 +151,8 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             if (mInstagramSession.isActive()) {
                 setContentView(R.layout.list_image);
                 if (Utility.checkPermission(Login.this)) {
+//                    isLoad = false;
+//                    numberPages = NUMBER_OF_PAGES;
                     mainAction();
                 }
             } else {
@@ -166,6 +185,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         callbackManager = CallbackManager.Factory.create();
 
         gv_images = (GridView) findViewById(R.id.gridView);
+        mSwipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.SwipeRefreshLayout);
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.attachToListView(gv_images);
         fab.setColorNormalResId(R.color.deleted_background);
@@ -180,12 +200,29 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         mrequestQueue = Volley.newRequestQueue(this);
         getUserInfo();
         getFromSdcard();
+        imageAdapter = new ImageAdapter();
+        gv_images.setAdapter(imageAdapter);
 
         if (Utility.getAddImage(getBaseContext())){
             fab.setVisibility(View.GONE);
         }else{
             fab.setVisibility(View.VISIBLE);
         }
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+
+            @Override
+            public void onRefresh() {
+                refreshItems();
+                mSwipeRefreshLayout.setRefreshing(false);
+                oldFileArrayImage.clear();
+                oldFileArrayImage.addAll(fileArrayImage);
+            }
+
+            void refreshItems() {
+                getImages();
+            }
+        });
 
         btn_logout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -231,12 +268,37 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                     }
 
                 } else {
-                    Utility.setAddImage(getBaseContext() , false);
                     Intent intent = new Intent(Login.this, ListAlbumActivity.class);
                     startActivityForResult(intent, 67);
                 }
             }
         });
+
+//        gv_images.setOnScrollListener(new AbsListView.OnScrollListener() {
+//            @Override
+//            public void onScrollStateChanged(AbsListView view, int scrollState) {}
+//
+//            @Override
+//            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+//                int lastInScreen = firstVisibleItem + visibleItemCount;
+//                if ((lastInScreen == totalItemCount) && !isFull && !isLoad ) {
+//                    isLoad = true;
+//                    final int oldSize = fileArrayImage.size();
+//                    new Handler().postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            getFromSdcard();
+//                            for (int i = oldSize - 1 ; i < fileArrayImage.size() -1 ; i++){
+//
+//                            }
+//                            imageAdapter.notifyDataSetChanged();
+//                            numberPages = numberPages + NUMBER_OF_PAGES;
+//                            isLoad = false;
+//                        }
+//                    } , 500);
+//                }
+//            }
+//        });
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -400,11 +462,11 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             public void onResponse(Boolean response) {
                 if (response) {
                     getFromSdcard();
-                    imageAdapter = new ImageAdapter();
-                    gv_images.setAdapter(imageAdapter);
-                    imageAdapter.notifyDataSetChanged();
-
-                    gv_images.invalidateViews();
+                    if (oldFileArrayImage == null || oldFileArrayImage.size() != fileArrayImage.size()){
+                        imageAdapter.notifyDataSetChanged();
+                        gv_images.invalidateViews();
+//                        isLoad = false;
+                    }
                     hideProgressBar();
                 } else {
                     showToast("Something wrong on load image!");
@@ -442,8 +504,11 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             listFile = file.listFiles();
             Arrays.sort(listFile);
             boolean check;
-            for (int i = listFile.length - 1; i >= 0; i--)
-            {
+//            if (numberPages > listFile.length){
+//                numberPages = listFile.length;
+////                isFull = true;
+//            }
+            for (int i = listFile.length - 1; i >= 0; i--){
                 check = false;
                 for (int j=0 ; j<arrayImageInInstagram.size() ; j++){
                     if (arrayImageInInstagram.get(j).equals(listFile[i].getName())){
@@ -456,6 +521,10 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                 }else{
                     listImageAdd.add(listFile[i].getAbsolutePath());
                 }
+            }
+            Log.e("Delete Image" , listImageAdd.size() + "");
+            if (listImageAdd.size() == 0){
+                Utility.setAddImage(getBaseContext() , true);
             }
             fileArrayImage.clear();
             fileArrayImage.addAll(listImageAdd);
@@ -531,7 +600,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         builder.setMessage("Are you sure to logout !")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        Utility.setAddImage(getBaseContext() , true);
                         mInstagramSession.reset();
                         Intent it = new Intent(Login.this, MainActivity.class);
                         Login.this.finish();
@@ -562,6 +630,9 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                             addToBlackListImage(fileArrayImage.get(listFile.length - 1 - selectedPosition));
                             fileArrayImage.remove(listFile.length - 1 - selectedPosition);
                             getFromSdcard();
+                            if (Utility.getAddImage(getBaseContext())){
+                                fab.setVisibility(View.GONE);
+                            }
                             imageAdapter.notifyDataSetChanged();
                             gv_images.invalidateViews();
                             mDeletedFragment = new deletedFragment(Login.this);
@@ -809,6 +880,11 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 
     private boolean isCrop = false;
 
+    @Override
+    public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
+        return super.onCreateView(parent, name, context, attrs);
+    }
+
     public class ImageAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
         public ImageAdapter() {
@@ -883,6 +959,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     }
 
     public void getUserInfo() {
+//        isLoad = true;
         String url = "https://api.instagram.com/v1/users/self/?access_token=" + mInstagramSession.getAccessToken();
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
@@ -918,13 +995,16 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != RESULT_CANCELED){
+        Log.e("onActivityResult" , resultCode + " - " + Utility.getAddImage(getBaseContext()));
+        if (resultCode != RESULT_CANCELED){
+            Utility.setAddImage(getBaseContext() , false);
             if (Utility.getAddImage(getBaseContext())){
                 fab.setVisibility(View.GONE);
             }else{
                 fab.setVisibility(View.VISIBLE);
             }
         }
+        Log.e("onActivityResult" , resultCode + " - " + Utility.getAddImage(getBaseContext()));
         if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
             isCrop = true;
             getFromSdcard();
