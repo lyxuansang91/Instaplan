@@ -10,17 +10,18 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -29,12 +30,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -59,12 +56,10 @@ import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
-import com.facebook.share.widget.ShareButton;
 import com.facebook.share.widget.ShareDialog;
 import com.melnykov.fab.FloatingActionButton;
 import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
-import com.twitter.sdk.android.core.identity.TwitterLoginButton;
 
 import net.londatiga.android.instagram.Instagram;
 import net.londatiga.android.instagram.InstagramSession;
@@ -80,12 +75,15 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import me.feedplanner.adapter.ImageAdapter;
 import me.feedplanner.fragment.deletedFragment;
 import me.feedplanner.fragment.preShareFragment;
 import me.feedplanner.fragment.shareFragment;
@@ -101,7 +99,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     ProgressBar pb_loadImage;
     Button btn_signin, btn_logout;
     EditText edt_username, edit_password;
-    GridView gv_images;
+    RecyclerView mRecyclerView;
     SwipeRefreshLayout mSwipeRefreshLayout;
     TextView nickname, post, follower, following;
     ImageView img_avatar;
@@ -119,7 +117,8 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     private static final int NUMBER_OF_PAGES = 18;
 //    private int numberPages ;
 //    private boolean isFull = false;
-//    private boolean isLoad;
+    private boolean isLoad;
+    private String mNextUrl;
 
     @Override
     public void onActivityReenter(int resultCode, Intent data) {
@@ -132,7 +131,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     ArrayList<String> fileArrayImage = new ArrayList<String>();// list of file paths
     ArrayList<String> oldFileArrayImage = new ArrayList<String>();
     ArrayList<String> arrayImageInInstagram = new ArrayList<String>();// list of Instagram
-    File[] listFile;
+    ArrayList<File> mListFile = new ArrayList<File>();
     private FloatingActionButton fab;
     private static final String CLIENT_ID = "44cdda39501e43799baef40906424eb2";
     private static final String CLIENT_SECRET = "b15428252491471baae9bde85d7442f9";
@@ -151,8 +150,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             if (mInstagramSession.isActive()) {
                 setContentView(R.layout.list_image);
                 if (Utility.checkPermission(Login.this)) {
-//                    isLoad = false;
-//                    numberPages = NUMBER_OF_PAGES;
                     mainAction();
                 }
             } else {
@@ -182,12 +179,17 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     }
 
     private void mainAction() {
+        mNextUrl = "";
+        isLoad = false;
         callbackManager = CallbackManager.Factory.create();
+        GridLayoutManager layoutManager = new GridLayoutManager(this , 3);
+        mRecyclerView = (RecyclerView)findViewById(R.id.recyclerView);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.addItemDecoration(new SpacesItemDecoration(5));
 
-        gv_images = (GridView) findViewById(R.id.gridView);
         mSwipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.SwipeRefreshLayout);
         fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.attachToListView(gv_images);
+        fab.attachToRecyclerView(mRecyclerView);
         fab.setColorNormalResId(R.color.deleted_background);
         fab.setColorPressedResId(R.color.deleted_background);
         nickname = (TextView) findViewById(R.id.txt_nickname);
@@ -199,9 +201,9 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         pb_loadImage = (ProgressBar) findViewById(R.id.progressBar);
         mrequestQueue = Volley.newRequestQueue(this);
         getUserInfo();
-        getFromSdcard();
-        imageAdapter = new ImageAdapter();
-        gv_images.setAdapter(imageAdapter);
+        imageAdapter = new ImageAdapter(this , fileArrayImage);
+        mRecyclerView.setAdapter(imageAdapter);
+//        getFromSdcard();
 
         if (Utility.getAddImage(getBaseContext())){
             fab.setVisibility(View.GONE);
@@ -220,7 +222,8 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             }
 
             void refreshItems() {
-                getImages();
+                String url = "https://api.instagram.com/v1/users/self/media/recent/?access_token=" + mInstagramSession.getAccessToken();
+                getImages(url);
             }
         });
 
@@ -231,9 +234,9 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             }
         });
 
-        gv_images.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        imageAdapter.setOnItemClickListener(new me.feedplanner.adapter.BaseAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(int position, View view) {
                 if (!Utility.getAddImage(getBaseContext()) || position > 0) {
                     rowViewInclick = view;
                     selectedPosition = position;
@@ -274,31 +277,21 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             }
         });
 
-//        gv_images.setOnScrollListener(new AbsListView.OnScrollListener() {
-//            @Override
-//            public void onScrollStateChanged(AbsListView view, int scrollState) {}
-//
-//            @Override
-//            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-//                int lastInScreen = firstVisibleItem + visibleItemCount;
-//                if ((lastInScreen == totalItemCount) && !isFull && !isLoad ) {
-//                    isLoad = true;
-//                    final int oldSize = fileArrayImage.size();
-//                    new Handler().postDelayed(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            getFromSdcard();
-//                            for (int i = oldSize - 1 ; i < fileArrayImage.size() -1 ; i++){
-//
-//                            }
-//                            imageAdapter.notifyDataSetChanged();
-//                            numberPages = numberPages + NUMBER_OF_PAGES;
-//                            isLoad = false;
-//                        }
-//                    } , 500);
-//                }
-//            }
-//        });
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                GridLayoutManager manager = (GridLayoutManager) mRecyclerView.getLayoutManager();
+                int totalItemCount = manager.getItemCount();
+                int lastVisibleItem = manager.findLastVisibleItemPosition();
+                if (totalItemCount <= lastVisibleItem + 1 && !isLoad){
+                    isLoad = true;
+                    if (!mNextUrl.equals("")){
+                        getImages(mNextUrl);
+                    }
+                }
+            }
+        });
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -342,16 +335,25 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
 
-    private void getImages() {
+    private void getImages(final String url) {
         showProgresBar();
         final Map<String, String> photoList = new HashMap<>();
-        String url = "https://api.instagram.com/v1/users/self/media/recent/?access_token=" + mInstagramSession.getAccessToken();
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 if (new JSONTokener(response).more()) {
                     try {
                         JSONObject json = (JSONObject) new JSONTokener(response).nextValue();
+                        JSONObject jsonUrl = json.getJSONObject("pagination");
+                        if (jsonUrl.has("next_url")){
+                            String nextUrl = json.getJSONObject("pagination").getString("next_url");
+                            if (nextUrl != null && !nextUrl.equals("")){
+                                mNextUrl = nextUrl;
+                            }
+                        }else{
+                            mNextUrl = "";
+                        }
+
                         JSONArray jsonData = json.getJSONArray("data");
                         int length = jsonData.length();
 
@@ -374,7 +376,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                getImages();
+                getImages(url);
             }
         }) {
             @Override
@@ -399,7 +401,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                 ImageRequest ir = new ImageRequest(value.get(0), new Response.Listener<Bitmap>() {
                     @Override
                     public void onResponse(Bitmap response) {
-                        saveToInternalStorage(response, key.get(0));
+                        saveFromInstaplan(response, key.get(0));
                         key.remove(0);
                         value.remove(0);
                         if (key.size() > 0) {
@@ -450,7 +452,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     private void downloadAndSaveToLocal(final Map<String, String> urlList) {
 
         List<String> key = new ArrayList<>();
-        arrayImageInInstagram.clear();
         List<String> value = new ArrayList<>();
         for (final Map.Entry<String, String> entry : urlList.entrySet()) {
             key.add(entry.getKey() + ".jpg");
@@ -461,11 +462,13 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             @Override
             public void onResponse(Boolean response) {
                 if (response) {
+                    int positionOld = fileArrayImage.size();
                     getFromSdcard();
                     if (oldFileArrayImage == null || oldFileArrayImage.size() != fileArrayImage.size()){
-                        imageAdapter.notifyDataSetChanged();
-                        gv_images.invalidateViews();
-//                        isLoad = false;
+                        for(int i = positionOld ; i < fileArrayImage.size() ; i++){
+                            imageAdapter.mNotifyDataSetChanged(i , isCrop);
+                        }
+                        isLoad = false;
                     }
                     hideProgressBar();
                 } else {
@@ -477,9 +480,25 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
 
     }
 
-    private String saveToInternalStorage(Bitmap bitmapImage, String name) {
+    private String saveFromInstaplan(Bitmap bitmapImage, String name) {
         String root = Environment.getExternalStorageDirectory().toString();
-        File myDir = new File(root + "/instaplan");
+        File myDir = new File(root + "/instaplan/instagram");
+        myDir.mkdirs();
+        File mypath = new File(myDir, name);
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(mypath);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        // Use the compress method on the BitMap object to write image to the OutputStream
+        bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+        return myDir.getAbsolutePath();
+    }
+
+    private String saveFromLocal(Bitmap bitmapImage, String name) {
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root + "/instaplan/local");
         myDir.mkdirs();
         File mypath = new File(myDir, name);
         FileOutputStream fos = null;
@@ -494,41 +513,69 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     }
 
     public void getFromSdcard() {
-        ArrayList<String> listOfInstagram = new ArrayList<String>();
-        ArrayList<String> listImageAdd = new ArrayList<String>();
+        fileArrayImage.clear();
+        mListFile.clear();
+        getFromLocal();
+        getFromInstagram();
+    }
+
+    private void getFromLocal(){
+        ArrayList<String> listImage = new ArrayList<String>();
         String root = Environment.getExternalStorageDirectory().toString();
-        File file = new File(root + "/instaplan");
+        File file = new File(root + "/instaplan/local");
         file.mkdirs();
 
         if (file.isDirectory()) {
-            listFile = file.listFiles();
-            Arrays.sort(listFile);
+            mListFile.addAll(new ArrayList<File>(Arrays.asList(file.listFiles())));
+            Collections.sort(mListFile, new Comparator<File>() {
+                @Override
+                public int compare(File o1, File o2) {
+                    return o2.getAbsolutePath().compareToIgnoreCase(o1.getAbsolutePath());
+                }
+            });
+            for (int i = 0; i < mListFile.size(); i++ ){
+                listImage.add(mListFile.get(i).getAbsolutePath());
+            }
+            if (listImage.size() == 0){
+                Utility.setAddImage(getBaseContext() , true);
+            }
+            fileArrayImage.addAll(listImage);
+        }
+    }
+
+    private void getFromInstagram(){
+        ArrayList<String> listImage = new ArrayList<String>();
+        String root = Environment.getExternalStorageDirectory().toString();
+        File file = new File(root + "/instaplan/instagram");
+        file.mkdirs();
+
+        if (file.isDirectory()) {
+            ArrayList<File> arr = new ArrayList<File>(Arrays.asList(file.listFiles()));
+            Collections.sort(arr, new Comparator<File>() {
+                @Override
+                public int compare(File o1, File o2) {
+                    return o2.getAbsolutePath().compareToIgnoreCase(o1.getAbsolutePath());
+                }
+            });
             boolean check;
-//            if (numberPages > listFile.length){
-//                numberPages = listFile.length;
-////                isFull = true;
-//            }
-            for (int i = listFile.length - 1; i >= 0; i--){
+            for (int i = 0 ; i <arr.size(); i++){
                 check = false;
                 for (int j=0 ; j<arrayImageInInstagram.size() ; j++){
-                    if (arrayImageInInstagram.get(j).equals(listFile[i].getName())){
+                    if (arrayImageInInstagram.get(j).equals(arr.get(i).getName())){
                         check = true;
                         break;
                     }
                 }
                 if(check){
-                    listOfInstagram.add(listFile[i].getAbsolutePath());
+                    listImage.add(arr.get(i).getAbsolutePath());
                 }else{
-                    listImageAdd.add(listFile[i].getAbsolutePath());
+                    arr.remove(i);
+                    i--;
                 }
             }
-            Log.e("Delete Image" , listImageAdd.size() + "");
-            if (listImageAdd.size() == 0){
-                Utility.setAddImage(getBaseContext() , true);
-            }
-            fileArrayImage.clear();
-            fileArrayImage.addAll(listImageAdd);
-            fileArrayImage.addAll(listOfInstagram);
+            fileArrayImage.addAll(listImage);
+            mListFile.addAll(arr);
+            Log.e("Nguyen Quan" , fileArrayImage.size() + " - " + mListFile.size());
         }
     }
 
@@ -624,17 +671,17 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         builder.setMessage("Are you sure to delete it !")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        File file = new File(listFile[listFile.length - 1 - selectedPosition].getAbsolutePath());
+                        File file = new File(mListFile.get(selectedPosition).getAbsolutePath());
                         boolean deleted = file.delete();
                         if (deleted) {
-                            addToBlackListImage(fileArrayImage.get(listFile.length - 1 - selectedPosition));
-                            fileArrayImage.remove(listFile.length - 1 - selectedPosition);
+                            addToBlackListImage(fileArrayImage.get(selectedPosition));
+                            fileArrayImage.remove(selectedPosition);
                             getFromSdcard();
                             if (Utility.getAddImage(getBaseContext())){
                                 fab.setVisibility(View.GONE);
                             }
-                            imageAdapter.notifyDataSetChanged();
-                            gv_images.invalidateViews();
+                            imageAdapter.mNotifyDataSetChanged(isCrop);
+//                            gv_images.invalidateViews();
                             mDeletedFragment = new deletedFragment(Login.this);
                             FragmentManager fragmentManager = getSupportFragmentManager();
                             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -677,7 +724,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     }
 
     private void gotoCropview() {
-        Uri uri = Uri.parse(new File("file://" + listFile[listFile.length - 1 - selectedPosition].getPath()).toString());
+        Uri uri = Uri.parse(new File("file://" + mListFile.get(selectedPosition).getPath()).toString());
 
         UCrop uCrop = UCrop.of(uri, uri);
 
@@ -730,7 +777,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     }
 
     private void shareWhatsapp() {
-        Uri uri = Uri.parse(new File("file://" + listFile[listFile.length - 1 - selectedPosition].getPath()).toString());
+        Uri uri = Uri.parse(new File("file://" + mListFile.get(mListFile.size() - 1 - selectedPosition).getPath()).toString());
         Intent share = new Intent(Intent.ACTION_SEND);
         share.setPackage("com.whatsapp");
         share.setType("image/*");
@@ -784,7 +831,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             Intent share = new Intent(Intent.ACTION_SEND);
             share.setPackage("com.instagram.android");
             share.setType(type);
-            Uri uri = Uri.parse(new File("file://" + listFile[listFile.length - 1 - selectedPosition].getPath()).toString());
+            Uri uri = Uri.parse(new File("file://" + mListFile.get(mListFile.size() - 1 - selectedPosition).getPath()).toString());
             share.putExtra(Intent.EXTRA_STREAM, uri);
             startActivity(share);
         } else {
@@ -796,7 +843,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     private void shareFacebookPhoto() {
         ShareDialog shareDialog = new ShareDialog(this);
         if (ShareDialog.canShow(SharePhotoContent.class)) {
-            Uri uri = Uri.parse(new File("file://" + listFile[listFile.length - 1 - selectedPosition].getPath()).toString());
+            Uri uri = Uri.parse(new File("file://" + mListFile.get(mListFile.size() - 1 - selectedPosition).getPath()).toString());
             SharePhoto photo = new SharePhoto.Builder()
                     .setImageUrl(uri)
                     .build();
@@ -847,7 +894,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         if (verificaTwitter()) {
             Intent tweetIntent = new Intent(Intent.ACTION_SEND);
             tweetIntent.setPackage("com.twitter.android");
-            Uri uri = Uri.parse(new File("file://" + listFile[listFile.length - 1 - selectedPosition].getPath()).toString());
+            Uri uri = Uri.parse(new File("file://" + mListFile.get(mListFile.size() - 1 - selectedPosition).getPath()).toString());
             String type = "image/*";
             tweetIntent.setType(type);
             tweetIntent.putExtra(Intent.EXTRA_STREAM, uri);
@@ -885,81 +932,56 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         return super.onCreateView(parent, name, context, attrs);
     }
 
-    public class ImageAdapter extends BaseAdapter {
-        private LayoutInflater mInflater;
-        public ImageAdapter() {
-            mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
+        private int space;
+
+        public SpacesItemDecoration(int space) {
+            this.space = space;
         }
 
-        public int getCount() {
-            if (Utility.getAddImage(getBaseContext()))
-                return fileArrayImage.size() + 1;
-            else
-                return fileArrayImage.size();
-        }
-
-        public Object getItem(int position) {
-            return position;
-        }
-
-        public long getItemId(int position) {
-            return position;
-        }
-
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder holder;
-            if (convertView == null) {
-                holder = new ViewHolder();
-                convertView = mInflater.inflate(R.layout.image_row, null);
-                holder.imageview = (ImageView) convertView.findViewById(R.id.img_android);
-                holder.imagePlus = (ImageView) convertView.findViewById(R.id.img_plus);
-                convertView.setTag(holder);
-            } else {
-                holder = (ViewHolder) convertView.getTag();
-            }
-            if (position == 0 && Utility.getAddImage(getBaseContext())) {
-                holder.imagePlus.setVisibility(View.VISIBLE);
-                holder.imageview.setVisibility(View.INVISIBLE);
-
-            } else {
-                holder.imagePlus.setVisibility(View.GONE);
-                holder.imageview.setVisibility(View.VISIBLE);
-                if (Utility.getAddImage(getBaseContext()))
-                    position = position - 1;
-                if (isCrop) {
-                    Picasso.with(Login.this).load(new File(fileArrayImage.get(position))).resize(200, 0).placeholder(R.drawable.thumb).memoryPolicy(MemoryPolicy.NO_CACHE).into(holder.imageview);
-                } else {
-                    Picasso.with(Login.this).load(new File(fileArrayImage.get(position))).resize(200, 0).placeholder(R.drawable.thumb).memoryPolicy(MemoryPolicy.NO_CACHE).into(holder.imageview);
-                }
+        @Override
+        public void getItemOffsets(Rect outRect, View view,
+                                   RecyclerView parent, RecyclerView.State state) {
+            outRect.left = space;
+            outRect.right = space;
+            outRect.bottom = space;
+            if ((parent.getChildLayoutPosition(view) + 1)% 3 == 0){
+                outRect.right = 0;
+            }else if ((parent.getChildLayoutPosition(view) + 1)% 3 == 1) {
+                outRect.left = 0;
+            }else{
+                outRect.right = 0;
+                outRect.left = 0;
             }
 
-            return convertView;
+            // Add top margin only for the first item to avoid double space between items
+            if (parent.getChildLayoutPosition(view) == 0) {
+                outRect.top = space;
+            } else {
+                outRect.top = 0;
+            }
         }
-    }
-
-    static class ViewHolder {
-        ImageView imageview;
-        ImageView imagePlus;
     }
 
     private void getUerProfile(String url) {
+        final String urlImage = "https://api.instagram.com/v1/users/self/media/recent/?access_token=" + mInstagramSession.getAccessToken();
         ImageRequest ir = new ImageRequest(url, new Response.Listener<Bitmap>() {
             @Override
             public void onResponse(Bitmap response) {
                 img_avatar.setImageBitmap(response);
-                getImages();
+                getImages(urlImage);
             }
         }, 0, 0, null, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                getImages();
+                getImages(urlImage);
             }
         });
         mrequestQueue.add(ir);
     }
 
     public void getUserInfo() {
-//        isLoad = true;
+        isLoad = true;
         String url = "https://api.instagram.com/v1/users/self/?access_token=" + mInstagramSession.getAccessToken();
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
@@ -1008,9 +1030,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
             isCrop = true;
             getFromSdcard();
-            imageAdapter = new ImageAdapter();
-            gv_images.setAdapter(imageAdapter);
-            imageAdapter.notifyDataSetChanged();
+            imageAdapter.mNotifyDataSetChanged(isCrop);
         } else {
             if (requestCode == CODE_IMAGE_LOCAL) {
                 if (resultCode == RESULT_SELECTED) {
@@ -1019,24 +1039,24 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                         if (MyAplication.imageSelected != null && MyAplication.imageSelected.size() > 0) {
                             for (ImageSelectItem item : MyAplication.imageSelected) {
                                 Bitmap bm = decodeSampledBitmapFromUri(item.getPath(), 500, 500);
-                                saveToInternalStorage(bm, System.currentTimeMillis() + "");
+                                saveFromLocal(bm, System.currentTimeMillis() + "");
                             }
                             getFromSdcard();
-                            imageAdapter.notifyDataSetChanged();
+                            imageAdapter.mNotifyDataSetChanged(isCrop);
                         }
                     } else {
                         Bitmap bm = decodeSampledBitmapFromUri(data.getStringExtra("path"), 500, 500);
-                        saveToInternalStorage(bm, System.currentTimeMillis() + "");
+                        saveFromLocal(bm, System.currentTimeMillis() + "");
                         getFromSdcard();
-                        imageAdapter.notifyDataSetChanged();
+                        imageAdapter.mNotifyDataSetChanged(isCrop);
                     }
                 } else if (resultCode == RESULT_CAMERA_DONE) {
                     getFromSdcard();
-                    imageAdapter.notifyDataSetChanged();
+                    imageAdapter.mNotifyDataSetChanged(isCrop);
 
                 } else if (resultCode == RESULT_CAMERA_CROP) {
                     getFromSdcard();
-                    imageAdapter.notifyDataSetChanged();
+                    imageAdapter.mNotifyDataSetChanged(isCrop);
                 }
 
 
