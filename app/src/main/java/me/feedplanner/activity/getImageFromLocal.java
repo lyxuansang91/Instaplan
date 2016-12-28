@@ -96,29 +96,10 @@ public class getImageFromLocal extends AppCompatActivity {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     if (position > 0) {
-//                        pathSelected = files[position - 1].getAbsolutePath();
-//                        Intent it = new Intent(getImageFromLocal.this, ImagePreview.class);
-//                        it.putExtra("path", files[position - 1].getAbsolutePath());
-//                        it.putExtra("camera", false);
-//                        startActivityForResult(it, 35);
                         myImageAdapter.setSelected(position);
                         myImageAdapter.notifyDataSetChanged();
                         btn_done_select.setText(getString(R.string.select_count, myImageAdapter.getCountSelected()));
                     } else {
-//                        if (Utility.checkPermission(getImageFromLocal.this)) {
-////                            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-////                            startActivityForResult(intent, 124);
-//
-////                            Intent intent = new Intent(getImageFromLocal.this,customCameraView.class);
-////                            startActivity(intent);
-//
-////                            Intent intent = new Intent(getImageFromLocal.this,customCameraView.class);
-////                            startActivity(intent);
-//
-//                            Intent intent = new Intent(getImageFromLocal.this, CameraActivity.class);
-////                            startActivity(intent);
-//                            startActivityForResult(intent, 36);
-//                        }
                         if (ContextCompat.checkSelfPermission(getImageFromLocal.this, Manifest.permission.CAMERA)
                                 == PackageManager.PERMISSION_GRANTED) {
                             Intent intent = new Intent(getImageFromLocal.this, CameraActivity.class);
