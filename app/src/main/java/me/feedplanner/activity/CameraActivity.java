@@ -298,14 +298,14 @@ public class CameraActivity extends AppCompatActivity implements
                     // This demo app saves the taken picture to a constant file.
                     // $ adb pull /sdcard/Android/data/com.google.android.cameraview.demo/files/Pictures/picture.jpg
                     String root = Environment.getExternalStorageDirectory().toString();
-                    String path = root + "/instaplan";
+                    String path = root + "/instaplan/local";
                     File folder = new File(path);
                     boolean success = true;
                     if (!folder.exists()) {
                         success = folder.mkdir();
                     }
                     if (success) {
-                        path = root + "/instaplan/" + System.currentTimeMillis() + ".jpg";
+                        path = root + "/instaplan/local/" + System.currentTimeMillis() + ".jpg";
                         currentPath = path;
                         File file = new File(path);
 

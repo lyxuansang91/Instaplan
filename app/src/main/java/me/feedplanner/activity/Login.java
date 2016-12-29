@@ -114,9 +114,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     private Instagram mInstagram;
     View rowViewInclick;
 
-    private static final int NUMBER_OF_PAGES = 18;
-//    private int numberPages ;
-//    private boolean isFull = false;
     private boolean isLoad;
     private String mNextUrl;
 
@@ -203,7 +200,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         getUserInfo();
         imageAdapter = new ImageAdapter(this , fileArrayImage);
         mRecyclerView.setAdapter(imageAdapter);
-//        getFromSdcard();
 
         if (Utility.getAddImage(getBaseContext())){
             fab.setVisibility(View.GONE);
@@ -538,6 +534,8 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             }
             if (listImage.size() == 0){
                 Utility.setAddImage(getBaseContext() , true);
+            }else{
+                Utility.setAddImage(getBaseContext() , false);
             }
             fileArrayImage.addAll(listImage);
         }
@@ -634,11 +632,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     }
 
     private void gotoPreShareview() {
-        /*mPreShareFramgnet = new preShareFragment(Login.this);
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
-        fragmentTransaction.replace(android.R.id.content, mPreShareFramgnet).commit();*/
         this.toShare();
     }
 
@@ -786,7 +779,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
         try {
             startActivity(share);
         } catch (android.content.ActivityNotFoundException ex) {
-//            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.whatsapp")));
             showToast("Please install whatsapp from Google Play");
         }
     }
@@ -1017,16 +1009,6 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.e("onActivityResult" , resultCode + " - " + Utility.getAddImage(getBaseContext()));
-        if (resultCode != RESULT_CANCELED){
-            Utility.setAddImage(getBaseContext() , false);
-            if (Utility.getAddImage(getBaseContext())){
-                fab.setVisibility(View.GONE);
-            }else{
-                fab.setVisibility(View.VISIBLE);
-            }
-        }
-        Log.e("onActivityResult" , resultCode + " - " + Utility.getAddImage(getBaseContext()));
         if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
             isCrop = true;
             getFromSdcard();
@@ -1035,6 +1017,7 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
             if (requestCode == CODE_IMAGE_LOCAL) {
                 if (resultCode == RESULT_SELECTED) {
                     String path = data.getStringExtra("path");
+                    Log.e("onActivityResult" , "Path : "+ path);
                     if (path.equals(MyAplication.SELECTED)) {
                         if (MyAplication.imageSelected != null && MyAplication.imageSelected.size() > 0) {
                             for (ImageSelectItem item : MyAplication.imageSelected) {
@@ -1058,9 +1041,12 @@ public class Login extends FragmentActivity implements PopoverView.PopoverViewDe
                     getFromSdcard();
                     imageAdapter.mNotifyDataSetChanged(isCrop);
                 }
-
-
             }
+        }
+        if (Utility.getAddImage(getBaseContext())){
+            fab.setVisibility(View.GONE);
+        }else{
+            fab.setVisibility(View.VISIBLE);
         }
     }
 
